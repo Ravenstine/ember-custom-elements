@@ -1,4 +1,4 @@
-<img src="https://travis-ci.org/Ravenstine/ember-custom-elements.svg?branch=master">
+<img src="https://secure.travis-ci.org/Ravenstine/ember-custom-elements.svg?branch=master" alt="Build Status"></a>
 
 Ember Custom Elements
 =====================
