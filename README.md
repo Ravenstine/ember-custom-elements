@@ -6,6 +6,27 @@ Ember Custom Elements
 The most flexible way to render parts of your Ember application using custom elements!
 
 
+## Table of Contents
+
+* [Compatibility](#compatibility)
+* [Installation](#installation)
+* [Usage](#usage)
+  * [Components](#components)
+    * [Attributes and Arguments](#attributes-and-arguments)
+    * [Block Content](#block-content)
+  * [Routes](#routes)
+    * [Named Outlets](#named-outlets)
+    * [Outlet Element](#outlet-element)
+  * [Applications](#applications)
+  * [Options](#options)
+* [Notes](#notes)
+  * [Elements](#elements)
+  * [Runloop](#runloop)
+* [Contributing](#contributing)
+* [License](#license)
+  
+
+
 ## Compatibility
 
 * Ember.js v3.6 or above
