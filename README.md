@@ -253,6 +253,7 @@ At present, there are a few options you can pass when creating custom elements:
 - **customElementClass**: In the extreme edge case that you need to redefine the behavior of the custom element class itself, you can `import { EmberCustomElement } from 'ember-custom-elements';`, extend it into a subclass, and pass that subclass to the `customElementClass` option.  This is definitely an expert tool and, even if you think you need this, you probably don't need it.  This is made available only for the desperate.  The `EmberCustomElement` class should be considered a private entity.
 - **camelizeArgs**: Element attributes must be kabob-case, but if `camelizeArgs` is set to true, these attributes will be exposed to your components in camelCase.
 - **outletName**: (routes only) The name of an outlet you wish to render for a route.  Defaults to 'main'.  The section on [named outlets][#named-outlets] goes into further detail.
+- **preserveOutletContent**: (routes only) When set to `true`, this prevents the DOM content inside the element from being cleared when transition away from the route is performed.  This is `false` by default, but you may want to set this to `true` in the case where you need to keep the DOM content around for animation purposes.
 
 
 

@@ -34,6 +34,19 @@ export default class EmberCustomElement extends HTMLElement {
   get outlet() {
     return this.options.outletName;
   }
+  /**
+   * If the referenced class is a route, and this is set to `true`, the DOM tree
+   * inside the element will not be cleared when the route is transitioned away
+   * until the element itself is destroyed.
+   * 
+   * This only applies to routes.  No behavior changes when applied to components
+   * or applications.
+   * 
+   * @returns {Boolean=false}
+   */
+  get preserveOutletContent() {
+    return this.options.preserveOutletContent;
+  }
 
   constructor() {
     super(...arguments);
@@ -180,7 +193,7 @@ export default class EmberCustomElement extends HTMLElement {
     if (this._blockContent) this._blockContent.destroy();
     if (this.attributesObserver) this.attributesObserver.disconnect();
     const { type } = this.parsedName;
-    if (type === 'route') this.innerHTML = '';
+    if (type === 'route' && !this.preserveOutletContent) this.innerHTML = '';
   }
 }
 

@@ -17,6 +17,7 @@ import { setOwner } from '@ember/application';
  * @param {Array<String>} customElementOptions.observedAttributes - An array of attribute names specifying which custom element attributes should be observed.  Observed attributes will update their value to the Ember/Glimmer component when said value changes.
  * @param {Boolean=false} customElementOptions.camelizeArgs - Element attributes must be kabob-case, but if `camelizeArgs` is set to true, these attributes will be exposed to your components in camelCase.
  * @param {String="main"} customElementOptions.outletName - The name of the outlet to render.  This option only applies to Ember.Route.
+ * @param {Boolean="true"} customElementOptions.clearsOutletAfterTransition - When set to `false`, this prevents the DOM content inside the element from being cleared when transition away from the route is performed.  This is `true` by default, but you may want to set this to `false` in the case where you need to keep the DOM content around for animation purposes.
  *
  * Basic usage:
  * @example

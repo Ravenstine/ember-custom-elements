@@ -332,6 +332,66 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       await settled();
       assert.equal(element.shadowRoot.textContent.trim(), 'foo baz', 'transitions to second route');
     });
+
+    test('it destroys DOM contents when navigating away', async function(assert) {
+      @customElement('foo-route')
+      class FooRoute extends Route {
+
+      }
+      setupRouteForTest(this.owner, FooRoute, 'foo-route');
+
+      @customElement('bar-route')
+      class BazRoute extends Route {
+
+      }
+      setupRouteForTest(this.owner, BazRoute, 'bar-route');
+
+      this.owner.register('template:application', hbs`<foo-route></foo-route><bar-route></bar-route>`);
+      this.owner.register('template:foo-route', hbs`<h2 data-test-foo>foo</h2>`);
+      this.owner.register('template:bar-route', hbs`<h2 data-test-bar>bar</h2>`);
+
+      setupTestRouter(this.owner, function() {
+        this.route('foo-route', { path: '/foo' });
+        this.route('bar-route', { path: '/bar' });
+      });
+
+      this.owner.lookup('router:main').transitionTo('/foo');
+      await settled();
+      this.owner.lookup('router:main').transitionTo('/bar');
+      await settled();
+      const element = find('foo-route');
+      assert.notOk(element.shadowRoot.querySelector('[data-test-foo]'), 'it destroys DOM contents');
+    });
+
+    test('it can preserve DOM contents when navigating away', async function(assert) {
+      @customElement('foo-route', { preserveOutletContent: true })
+      class FooRoute extends Route {
+
+      }
+      setupRouteForTest(this.owner, FooRoute, 'foo-route');
+
+      @customElement('bar-route')
+      class BazRoute extends Route {
+
+      }
+      setupRouteForTest(this.owner, BazRoute, 'bar-route');
+
+      this.owner.register('template:application', hbs`<foo-route></foo-route><bar-route></bar-route>`);
+      this.owner.register('template:foo-route', hbs`<h2 data-test-foo>foo</h2>`);
+      this.owner.register('template:bar-route', hbs`<h2 data-test-bar>bar</h2>`);
+
+      setupTestRouter(this.owner, function() {
+        this.route('foo-route', { path: '/foo' });
+        this.route('bar-route', { path: '/bar' });
+      });
+
+      this.owner.lookup('router:main').transitionTo('/foo');
+      await settled();
+      this.owner.lookup('router:main').transitionTo('/bar');
+      await settled();
+      const element = find('foo-route');
+      assert.ok(element.shadowRoot.querySelector('[data-test-foo]'), 'it preserves DOM contents');
+    });
   });
 
   module('unsupported', function() {

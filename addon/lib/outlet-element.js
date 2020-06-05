@@ -6,6 +6,7 @@ import { scheduleOnce } from '@ember/runloop';
  *
  * @argument {String} route - The dot-delimited name of a route.
  * @argument {String='main'} name - The name of an outlet.
+ * @argument {String='true'} preserveContent - Prevents outlet contents from being cleared when transitioning out of the route or when the element is disconnected.
  */
 export default class EmberWebOutlet extends HTMLElement {
   get route() {
@@ -14,6 +15,10 @@ export default class EmberWebOutlet extends HTMLElement {
 
   get outlet() {
     return this.getAttribute('name') || 'main';
+  }
+
+  get preserveOutletContent() {
+    return this.getAttribute('preserve-content') === 'true' || false;
   }
 
   constructor() {
@@ -35,14 +40,13 @@ export default class EmberWebOutlet extends HTMLElement {
     const view = OutletView.create();
     view.appendTo(target);
     this.view = view;
-    // router.on('willTransition', this.scheduleUpdateOutletState);
-    // router.on('didTransition', this.scheduleUpdateOutletState);
     router.on('routeWillChange', this.scheduleUpdateOutletState);
     router.on('routeDidChange', this.scheduleUpdateOutletState);
     this.updateOutletState();
   }
 
-  scheduleUpdateOutletState() {
+  scheduleUpdateOutletState(transition) {
+    if (transition.to.name !== this.route && this.preserveOutletContent) return;
     scheduleOnce('render', this, 'updateOutletState')
   }
 
@@ -50,6 +54,7 @@ export default class EmberWebOutlet extends HTMLElement {
    * Looks up the outlet on the top-level view and updates the state of our outlet view.
    */
   updateOutletState() {
+    if (!this.isConnected) return;
     const router = getOwner(this).lookup('router:main');
     const outletState = lookupOutlet(router._toplevelView.ref.outletState, this.route, this.outlet) || {};
     this.view.setOutletState(outletState);
@@ -58,8 +63,8 @@ export default class EmberWebOutlet extends HTMLElement {
   disconnectedCallback() {
     const owner = getOwner(this);
     const router = owner.lookup('router:main');
-    router.off('willTransition', this.scheduleUpdateOutletState);
-    router.off('didTransition', this.scheduleUpdateOutletState);
+    router.off('routeWillChange', this.scheduleUpdateOutletState);
+    router.off('routeDidChange', this.scheduleUpdateOutletState);
     this.destroyOutlet();
   }
 
@@ -69,7 +74,7 @@ export default class EmberWebOutlet extends HTMLElement {
       this.view = null;
     }
     const target = this.shadowRoot || this;
-    target.innerHTML = '';
+    if (this.preserveOutletContent !== 'true') target.innerHTML = '';
   }
 }
 
