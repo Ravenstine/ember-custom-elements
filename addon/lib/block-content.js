@@ -70,7 +70,7 @@ export default class BlockContent {
   }
 
   captureAfterRender() {
-    scheduleOnce('afterRender', this, this.capture);
+    scheduleOnce('actions', this, this.capture);
   }
 
   capture() {

@@ -140,6 +140,32 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         assert.equal(element.shadowRoot.textContent.trim(), 'foo baz baz')
       });
 
+      test('it supports logic with block content', async function(assert) {
+        assert.expect(3);
+
+        @customElement('web-component')
+        class EmberCustomElement extends klass {}
+
+        const template = hbs`foo{{#if @show-content}} {{yield}}{{/if}} baz`;
+
+        setupComponentForTest(this.owner, EmberCustomElement, template, 'web-component');
+
+        set(this, 'bar', 'bar');
+        set(this, 'showContent', 'true');
+        await render(hbs`<web-component show-content={{this.showContent}}>{{this.bar}}</web-component>`);
+        const element = find('web-component');
+        assert.equal(element.shadowRoot.textContent.trim(), 'foo bar baz');
+
+        set(this, 'showContent', false);
+        await settled();
+        assert.equal(element.shadowRoot.textContent.trim(), 'foo baz');
+
+        set(this, 'bar', 'baz');
+        set(this, 'showContent', 'true');
+        await settled();
+        assert.equal(element.shadowRoot.textContent.trim(), 'foo baz baz');
+      });
+
       test('it can render without a shadow root', async function(assert) {
         @customElement('web-component', { useShadowRoot: false })
         class EmberCustomElement extends klass {}
