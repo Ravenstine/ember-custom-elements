@@ -44,6 +44,19 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         assert.equal(element.shadowRoot.textContent.trim(), 'foo bar');
       });
 
+      test('it supports function syntax', async function(assert) {
+        class EmberCustomElement extends klass {}
+        customElement(EmberCustomElement, 'web-component');
+
+        const template = hbs`foo bar`;
+
+        setupComponentForTest(this.owner, EmberCustomElement, template, 'web-component');
+
+        await render(hbs`<web-component></web-component>`);
+        const element = find('web-component');
+        assert.equal(element.shadowRoot.textContent.trim(), 'foo bar');
+      });
+
       test('it translates attributes to arguments and updates them', async function(assert) {
         assert.expect(2);
 

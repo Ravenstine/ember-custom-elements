@@ -67,6 +67,14 @@ Now you can use your component _anywhere_ inside the window that your app was in
 <my-component></my-component>
 ```
 
+In the case that you can't use TC39's proposed decorator syntax, you can call customElement as a function and pass the target class as the first argument:
+
+```javascript
+customElement(MyComponent, 'my-component');
+```
+
+However, it's recommended that you upgrade to a recent version of [ember-cli-babel]() so you can use decorator syntax out of the box, or manually install [babel-plugin-proposal-decorators](https://babeljs.io/docs/en/babel-plugin-proposal-decorators).
+
 
 
 
