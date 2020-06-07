@@ -1,6 +1,11 @@
 Ember Web Components Changelog
 ==============================
 
+## v0.3.0
+
+- Add global default options inside `config/environment.js` under `ENV.emberCustomElements.defaultOptions`.
+- Add private `deoptimizeModuleEval` option.
+
 ## v0.2.1
 
 - Fixed bug with conditional logic surrounding block content, which was causing an infinite render loop.
