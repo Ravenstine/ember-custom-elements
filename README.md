@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/Ravenstine/ember-custom-elements.svg?branch=master)](https://travis-ci.com/Ravenstine/ember-custom-elements)
+[![npm version](https://badge.fury.io/js/ember-custom-elements.svg)](https://badge.fury.io/js/ember-custom-elements)
 
 Ember Custom Elements
 =====================
