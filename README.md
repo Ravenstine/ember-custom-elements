@@ -268,6 +268,27 @@ export default MyComponent extends Component {
 ```
 
 
+
+
+#### Global Default Options
+
+In the case where you want to apply an option to all uses of the `customElement` decorator, you can set the option as a global default in the `config/environment.js` of your Ember project.
+
+For example, if you want `preserveOutletContent` to be applied to all route elements, you can add this option to `ENV.emberCustomElements.defaultOptions`:
+
+```javascript
+module.exports = function(environment) {
+  ...
+  emberCustomElements: {
+    defaultOptions: {
+      preserveOutletContent: true
+    }
+  },
+  ...
+}
+```
+
+
 ## Notes
 
 

@@ -3,7 +3,7 @@ import { getCustomElements,
          addCustomElement,
          getTargetClass,
          isSupportedClass } from './lib/common';
-import { setOwner } from '@ember/application';
+import { getOwner, setOwner } from '@ember/application';
 
 /**
  * A decorator that allows an Ember or Glimmer component to be instantiated
@@ -85,7 +85,9 @@ export function customElement() {
     // Overwrite the original config on the element
     // const initialize = element.prototype.initialize;
     element.prototype.initialize = function() {
-      this.options = customElementOptions;
+      const ENV = getOwner(this).resolveRegistration('config:environment') || {};
+      const { defaultOptions = {} } = ENV.emberCustomElements || {};
+      this.options = Object.assign({}, defaultOptions, customElementOptions);
     }
 
     addCustomElement(targetClass, element);
