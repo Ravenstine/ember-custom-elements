@@ -21,14 +21,25 @@ export function initialize(instance) {
       const moduleName = instance.__registry__.fallback.resolver.findModuleName(parsedName);
       const _module = instance.__registry__.fallback.resolver._moduleRegistry._entries[moduleName];
       const code = _module.callback.toString();
+      const { 
+        emberCustomElements = {}
+      } = instance.resolveRegistration('config:environment');
       // Only evaluate the component module if its code contains our sigil.
       // This optimization is ignored in testing so that components can be
       // dynamically created and registered.
-      if (!(/\n\s*"~~EMBER~CUSTOM~ELEMENT~~";\s*\n/.test(code))) continue;
+      const shouldEvalModule =
+        emberCustomElements.deoptimizeModuleEval ||
+        /\n\s*"~~EMBER~CUSTOM~ELEMENT~~";\s*\n/.test(code);
+      if (!shouldEvalModule) continue;
       const componentClass = instance.resolveRegistration(entityName);
       const customElements = getCustomElements(componentClass);
-      if (!customElements.length)
-        warn(`ember-custom-elements: Custom element expected for \`${entityName}\` but none found.`);
+      const noCustomElements = !customElements.length;
+      warn(
+        `ember-custom-elements: Custom element expected for \`${entityName}\` but none found.`,
+        noCustomElements,
+        { id: 'no-custom-elements' }
+      );
+      if (noCustomElements) continue;
       setupCustomElementFor(instance, entityName);
     }
   }
