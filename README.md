@@ -8,7 +8,7 @@ The most flexible way to render parts of your Ember application using custom ele
 
 ## Demos
 
-- [Tic Tac Toe game using Ember and React](https://ember-twiddle.com/8fa62cb81a790a3afb6713fd9f2480b5) (based on the [React.js tutorial](https://reactjs.org/tutorial/tutorial.html) 
+- [Tic Tac Toe game using Ember and React](https://ember-twiddle.com/8fa62cb81a790a3afb6713fd9f2480b5) (based on the [React.js tutorial](https://reactjs.org/tutorial/tutorial.html))
 
 
 ## Table of Contents
