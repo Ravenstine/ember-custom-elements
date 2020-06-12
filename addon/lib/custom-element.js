@@ -133,6 +133,7 @@ export default class EmberCustomElement extends HTMLElement {
       attrs,
       blockContent: null
     });
+    this.view.customElement = this;
     // Track block content presence and push a DocumentFragment when content
     // is no longer in the DOM due to logic in the component
     blockContent.onTracked = fragment => {

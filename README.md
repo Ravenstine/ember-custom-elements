@@ -20,6 +20,7 @@ The most flexible way to render parts of your Ember application using custom ele
     * [Outlet Element](#outlet-element)
   * [Applications](#applications)
   * [Options](#options)
+  * [Accessing a Custom Element](#accessing-a-custom-element)
 * [Notes](#notes)
   * [Elements](#elements)
   * [Runloop](#runloop)
@@ -296,6 +297,16 @@ module.exports = function(environment) {
   ...
 }
 ```
+
+
+
+### Accessing a Custom Element
+
+The custom element node that's invoking a component is passed to that component as an argument.
+
+For Ember components, this is an attribute called `customElement`, which becomes available once `didReceiveAttrs` is fired.
+
+With Glimmer components, it is accessible as `this.args.customElement`.
 
 
 ## Notes

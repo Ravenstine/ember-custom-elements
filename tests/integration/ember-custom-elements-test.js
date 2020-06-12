@@ -211,6 +211,29 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         const bar = find('bar-component');
         assert.equal(bar.shadowRoot.textContent.trim(), 'foo bar');
       });
+
+      test('it can access the custom element', async function(assert) {
+        assert.expect(1);
+
+        @customElement('web-component', { useShadowRoot: false })
+        class EmberCustomElement extends klass {
+          constructor() {
+            super(...arguments);
+            if (!this.args) return;
+            const element = this.args.customElement;
+            assert.equal(element.tagName, 'WEB-COMPONENT', 'found the custom element');
+          }
+          didReceiveAttrs() {
+            const element = this.customElement;
+            assert.equal(element.tagName, 'WEB-COMPONENT', 'found the custom element');
+          }å
+        }
+
+        setupComponentForTest(this.owner, EmberCustomElement, hbs``, 'web-component');
+
+        await render(hbs`<web-component></web-component>`);
+        await settled();
+      });
     });
   }
 

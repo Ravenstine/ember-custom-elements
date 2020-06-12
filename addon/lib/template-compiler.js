@@ -57,19 +57,26 @@ export function compileTemplate(componentName, attributeNames=[]) {
   const baseValue = argumentIdentifiers[0];
   argumentIdentifiers.length = 0;
   // https://github.com/glimmerjs/glimmer-vm/blob/319f3e391c547544129e4dab0746b059b665880e/packages/%40glimmer/compiler/lib/allocate-symbols.ts#L113
-  for (const name of attributeNames) {
+  function pushArg(name, identifier) {
     argumentNames.push(`@${name}`);
     // https://github.com/glimmerjs/glimmer-vm/blob/319f3e391c547544129e4dab0746b059b665880e/packages/%40glimmer/compiler/lib/allocate-symbols.ts#L130
     const value = JSON.parse(JSON.stringify(baseValue));
     crawl(value, ({ object }) => {
-      if (object === 'valueName') return `attrs.${name}`;
+      if (object === 'valueName') return identifier;
     });
     argumentIdentifiers.push(value);
   }
+  // Set args
+  for (const name of attributeNames)
+    pushArg(name, `attrs.${name}`);
+  // Set customElement arg
+  pushArg('customElement', 'customElement');
   template.id = componentName;
   template.block = JSON.stringify(block);
   return createTemplateFactory(template);
 }
+
+
 
 /**
  * Given an object and a callback, will crawl the object

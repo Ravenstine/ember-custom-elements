@@ -1,6 +1,11 @@
 Ember Web Components Changelog
 ==============================
 
+## v0.4.0
+
+- Expose the custom element node via the `customElement` component arg.
+- Fix misfiring log warning
+
 ## v0.3.0
 
 - Add global default options inside `config/environment.js` under `ENV.emberCustomElements.defaultOptions`.

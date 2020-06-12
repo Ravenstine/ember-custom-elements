@@ -33,13 +33,13 @@ export function initialize(instance) {
       if (!shouldEvalModule) continue;
       const componentClass = instance.resolveRegistration(entityName);
       const customElements = getCustomElements(componentClass);
-      const noCustomElements = !customElements.length;
+      const hasCustomElements = customElements.length;
       warn(
         `ember-custom-elements: Custom element expected for \`${entityName}\` but none found.`,
-        noCustomElements,
+        hasCustomElements,
         { id: 'no-custom-elements' }
       );
-      if (noCustomElements) continue;
+      if (!hasCustomElements) continue;
       setupCustomElementFor(instance, entityName);
     }
   }
