@@ -192,12 +192,29 @@ This add-on comes with a primitive custom element called `<ember-outlet>` which 
 
 ##### Usage
 
-The outlet element will not be defined by default.  You must do this yourself somewhere in your code:
+The outlet element will not be defined by default.  You must do this yourself somewhere in your code.  Here is an example of an instance-initializer you can add to your application that will set up the outlet element:
 
 ```javascript
+import { setOwner } from '@ember/application';
 import { EmberOutletElement } from 'ember-custom-elements';
 
-window.customElements.define('ember-outlet', EmberOutletElement);
+const TAG_NAME = 'my-outlet-element';
+
+export function initialize(instance) {
+  if (window.customElements.get(TAG_NAME)) {
+    return;
+  }
+  class OutletElement extends EmberOutletElement {
+    initialize() {
+      setOwner(this, instance);
+    }
+  }
+  window.customElements.define(TAG_NAME, OutletElement);
+}
+
+export default {
+  initialize
+};
 ```
 
 This will allow you to render an outlet like this:
