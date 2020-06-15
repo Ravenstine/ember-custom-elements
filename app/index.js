@@ -1,8 +1,6 @@
 export {
-  default,
   customElement,
-  setupCustomElementFor
+  setupCustomElementFor,
+  EmberOutletElement,
+  EmberCustomElement
 } from 'ember-custom-elements';
-
-export { default as EmberOutletElement } from 'ember-custom-elements/lib/outlet-element';
-export { default as EmberCustomElement } from 'ember-custom-elements/lib/custom-element';

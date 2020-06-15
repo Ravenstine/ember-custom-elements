@@ -1,6 +1,12 @@
 Ember Web Components Changelog
 ==============================
 
+## v1.0.0
+
+- Change `useShadowRoot` to be false by default, making shadow roots opt-in.  This is to avoid extra complexity when rendering components that depend on global styles, which is almost always the expectation.
+- Change the rendering behavior for applications to rely on route/outlet rendering for better portability and more shallow HTML.
+- Fix faulty outlet state identification logic which was breaking for outlets rendering a different template than the default one for a given route.
+
 ## v0.4.0
 
 - Expose the custom element node via the `customElement` component arg.

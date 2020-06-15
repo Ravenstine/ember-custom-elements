@@ -28,6 +28,6 @@ module('Acceptance | ember custom elements', function(hooks) {
 
     const element = find('foo-bar');
 
-    assert.equal(element.shadowRoot.textContent.trim(), 'foo bar');
+    assert.equal(element.textContent.trim(), 'foo bar');
   });
 });

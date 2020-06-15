@@ -1,6 +1,6 @@
 import { notifyPropertyChange, set } from '@ember/object';
 import { schedule, scheduleOnce } from '@ember/runloop';
-import { getOwner } from '@ember/application';
+import { getOwner, setOwner } from '@ember/application';
 import { camelize } from '@ember/string';
 import { compileTemplate } from './template-compiler';
 import OutletElement from './outlet-element';
@@ -22,6 +22,8 @@ export default class EmberCustomElement extends HTMLElement {
     const { type, fullNameWithoutType } = this.parsedName;
     if (type === 'route') {
       return fullNameWithoutType.replace('/', '.');
+    } else if (type === 'application') {
+      return 'application';
     } else {
       return null;
     }
@@ -32,7 +34,7 @@ export default class EmberCustomElement extends HTMLElement {
    * @returns {String|null}
    */
   get outlet() {
-    return this.options.outletName;
+    return this.options.outletName || 'main';
   }
   /**
    * If the referenced class is a route, and this is set to `true`, the DOM tree
@@ -99,7 +101,7 @@ export default class EmberCustomElement extends HTMLElement {
     // Capture block content and replace
     const blockContent = BlockContent.from(this.childNodes);
     this._blockContent = blockContent;
-    const useShadowRoot = this.options.useShadowRoot === false ? false : true;
+    const useShadowRoot = !!this.options.useShadowRoot;
     if (useShadowRoot) this.attachShadow({mode: 'open'});
     const target = this.shadowRoot ? this.shadowRoot : this;
     if (target === this) this.innerHTML = '';
@@ -138,7 +140,7 @@ export default class EmberCustomElement extends HTMLElement {
     // is no longer in the DOM due to logic in the component
     blockContent.onTracked = fragment => {
       if (this.view && this.view.isDestroyed) return;
-      set(this, 'view.blockContent', fragment)
+      set(this, 'view.blockContent', fragment);
     };
     blockContent.track();
     // This bypasses a check that happens in this.view.appendTo
@@ -149,8 +151,7 @@ export default class EmberCustomElement extends HTMLElement {
    * Sets up a route to be rendered in the element
    */
   async connectRoute() {
-    this.scheduleUpdateOutletState = this.scheduleUpdateOutletState.bind(this);
-    const useShadowRoot = this.options.useShadowRoot === false ? false : true;
+    const useShadowRoot = this.options.useShadowRoot;
     if (useShadowRoot) {
       this.attachShadow({ mode: 'open' });
     }
@@ -158,19 +159,30 @@ export default class EmberCustomElement extends HTMLElement {
   }
   /**
    * Sets up an application to be rendered in the element.
+   * 
+   * Here, we are actually booting the app into a detached
+   * element and then relying on `connectRoute` to render
+   * the application route for the app instance.
+   * 
+   * There are a few advantages to this.  This allows the
+   * rendered content to be less "deep", meaning that we
+   * don't need two useless elements, which the app
+   * instance is expecting, to be present in the DOM.  The
+   * second advantage is that this prevents problems
+   * rendering apps within other apps in a way that doesn't
+   * require the use of a shadowRoot.
    */
   async connectApplication() {
-    const useShadowRoot = this.options.useShadowRoot === false ? false : true;
-    const target = useShadowRoot ? this.attachShadow({ mode: 'open' }) : this;
     const parentElement = document.createElement('div');
     const rootElement = document.createElement('div');
     parentElement.append(rootElement);
-    target.append(parentElement);
     const app = getOwner(this).application;
     await app.boot();
     this.view = app.buildInstance();
     await this.view.boot({ rootElement });
-    this.view.startRouting();
+    await this.view.startRouting();
+    setOwner(this, this.view);
+    this.connectRoute();
   }
   /**
    * Reflects element attribute changes to component properties.
@@ -186,9 +198,9 @@ export default class EmberCustomElement extends HTMLElement {
   /**
    * Destroys the component upon element removal.
    */
-  disconnectedCallback() {
+  async disconnectedCallback() {
     if (this.view) {
-      this.view.destroy();
+      await this.view.destroy();
       this.view = null;
     }
     if (this._blockContent) this._blockContent.destroy();

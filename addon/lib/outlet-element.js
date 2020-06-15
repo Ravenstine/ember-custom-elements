@@ -1,6 +1,6 @@
 import { getOwner } from '@ember/application';
 import { scheduleOnce } from '@ember/runloop';
-
+import ROUTE_CONNECTIONS from './route-connections';
 /**
  * A custom element that can render an outlet from an Ember app.
  *
@@ -10,7 +10,9 @@ import { scheduleOnce } from '@ember/runloop';
  */
 export default class EmberWebOutlet extends HTMLElement {
   get route() {
-    return this.getAttribute('route');
+    const attr = this.getAttribute('route');
+    const routeName = attr ? attr.trim() : null;
+    return routeName && routeName.length ? routeName : 'application';
   }
 
   get outlet() {
@@ -24,7 +26,6 @@ export default class EmberWebOutlet extends HTMLElement {
   constructor() {
     super(...arguments);
     this.initialize();
-    this.scheduleUpdateOutletState = this.scheduleUpdateOutletState.bind(this);
   }
 
   /**
@@ -40,6 +41,7 @@ export default class EmberWebOutlet extends HTMLElement {
     const view = OutletView.create();
     view.appendTo(target);
     this.view = view;
+    this.scheduleUpdateOutletState = this.scheduleUpdateOutletState.bind(this);
     router.on('routeWillChange', this.scheduleUpdateOutletState);
     router.on('routeDidChange', this.scheduleUpdateOutletState);
     this.updateOutletState();
@@ -56,7 +58,18 @@ export default class EmberWebOutlet extends HTMLElement {
   updateOutletState() {
     if (!this.isConnected) return;
     const router = getOwner(this).lookup('router:main');
-    const outletState = lookupOutlet(router._toplevelView.ref.outletState, this.route, this.outlet) || {};
+    if (!router._toplevelView) return;
+    let routeName;
+    const loadingName = `${this.route}_loading`;
+    const errorName = `${this.route}_error`;
+    if (router.isActive(loadingName)) {
+      routeName = loadingName;
+    } else if (router.isActive(errorName)) {
+      routeName = errorName;
+    } else {
+      routeName = this.route;
+    }
+    const outletState = lookupOutlet(router._toplevelView.ref.outletState, routeName, this.outlet) || {};
     this.view.setOutletState(outletState);
   }
 
@@ -68,9 +81,9 @@ export default class EmberWebOutlet extends HTMLElement {
     this.destroyOutlet();
   }
 
-  destroyOutlet() {
+  async destroyOutlet() {
     if (this.view) {
-      this.view.destroy();
+      await this.view.destroy();
       this.view = null;
     }
     const target = this.shadowRoot || this;
@@ -87,19 +100,19 @@ export default class EmberWebOutlet extends HTMLElement {
  * @param {String=} outletName
  */
 function lookupOutlet(outletState, routeName, outletName) {
-  const routeMatched = [routeName, `${routeName}_loading`, `${routeName}_error`].includes(outletState.render.name);
-  if (routeMatched) {
-    if (outletName) {
-      if (outletName === outletState.render.outlet) {
-        return outletState;
-      }
-    } else {
-      return outletState
+  const route = outletState.render.owner.lookup(`route:${routeName}`);
+  if (!route) return Object.create(null);
+  const routeConnections = ROUTE_CONNECTIONS.get(route);
+  if (!routeConnections) return null;
+  const outletRender = routeConnections.find(outletState => outletState.outlet === outletName);
+  function _lookupOutlet(outletState) {
+    if (outletState.render === outletRender) return outletState;
+    const outlets = Object.values(outletState.outlets);
+    for (const outlet of outlets) {
+      const foundOutlet = _lookupOutlet(outlet);
+      if (foundOutlet) return foundOutlet;
     }
+    return Object.create(null);
   }
-  const outlets = Object.values(outletState.outlets);
-  for (const outlet of outlets) {
-    const foundOutlet = lookupOutlet(outlet, routeName);
-    if (foundOutlet) return foundOutlet;
-  }
+  return _lookupOutlet(outletState);
 }

@@ -1,9 +1,16 @@
 import EmberCustomElement from './lib/custom-element';
-import { getCustomElements,
-         addCustomElement,
-         getTargetClass,
-         isSupportedClass } from './lib/common';
+import { 
+  getCustomElements,
+  addCustomElement,
+  getTargetClass,
+  isSupportedClass
+} from './lib/common';
 import { getOwner, setOwner } from '@ember/application';
+
+export { default as EmberOutletElement } from './lib/outlet-element';
+export { default as EmberCustomElement } from './lib/custom-element';
+
+// export const ROUTE_CONNECTIONS = new WeakMap();
 
 /**
  * A decorator that allows an Ember or Glimmer component to be instantiated

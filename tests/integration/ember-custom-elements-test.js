@@ -41,7 +41,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
 
         await render(hbs`<web-component></web-component>`);
         const element = find('web-component');
-        assert.equal(element.shadowRoot.textContent.trim(), 'foo bar');
+        assert.equal(element.textContent.trim(), 'foo bar');
       });
 
       test('it supports function syntax', async function(assert) {
@@ -54,7 +54,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
 
         await render(hbs`<web-component></web-component>`);
         const element = find('web-component');
-        assert.equal(element.shadowRoot.textContent.trim(), 'foo bar');
+        assert.equal(element.textContent.trim(), 'foo bar');
       });
 
       test('it translates attributes to arguments and updates them', async function(assert) {
@@ -71,11 +71,11 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         await render(hbs`<web-component foo={{foo}}></web-component>`);
         const element = find('web-component');
 
-        assert.equal(element.shadowRoot.textContent.trim(), 'bar');
+        assert.equal(element.textContent.trim(), 'bar');
 
         set(this, 'foo', 'baz');
         await settled();
-        assert.equal(element.shadowRoot.textContent.trim(), 'baz');
+        assert.equal(element.textContent.trim(), 'baz');
       });
 
       test('it can translate attributes to camelCase arguments', async function(assert) {
@@ -92,11 +92,11 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         await render(hbs`<web-component foo-bar={{foo}}></web-component>`);
         const element = find('web-component');
 
-        assert.equal(element.shadowRoot.textContent.trim(), 'bar');
+        assert.equal(element.textContent.trim(), 'bar');
 
         set(this, 'foo', 'baz');
         await settled();
-        assert.equal(element.shadowRoot.textContent.trim(), 'baz');
+        assert.equal(element.textContent.trim(), 'baz');
       });
 
       test('it only updates arguments defined by observedAttributes', async function(assert) {
@@ -118,8 +118,8 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         await render(hbs`<observed-attributes foo={{this.foo}} bar={{this.bar}}></observed-attributes>`);
 
         const element = find('observed-attributes');
-        const foo = element.shadowRoot.querySelector('[data-test-foo]');
-        const bar = element.shadowRoot.querySelector('[data-test-bar]');
+        const foo = element.querySelector('[data-test-foo]');
+        const bar = element.querySelector('[data-test-bar]');
 
         assert.equal(foo.textContent.trim(), 'bar');
         assert.equal(bar.textContent.trim(), 'baz');
@@ -146,11 +146,11 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         set(this, 'bar', 'bar');
         await render(hbs`<web-component>{{this.bar}}</web-component>`);
         const element = find('web-component');
-        assert.equal(element.shadowRoot.textContent.trim(), 'foo bar baz');
+        assert.equal(element.textContent.trim(), 'foo bar baz');
 
         set(this, 'bar', 'baz');
         await settled();
-        assert.equal(element.shadowRoot.textContent.trim(), 'foo baz baz')
+        assert.equal(element.textContent.trim(), 'foo baz baz')
       });
 
       test('it supports logic with block content', async function(assert) {
@@ -167,20 +167,20 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         set(this, 'showContent', 'true');
         await render(hbs`<web-component show-content={{this.showContent}}>{{this.bar}}</web-component>`);
         const element = find('web-component');
-        assert.equal(element.shadowRoot.textContent.trim(), 'foo bar baz');
+        assert.equal(element.textContent.trim(), 'foo bar baz');
 
         set(this, 'showContent', false);
         await settled();
-        assert.equal(element.shadowRoot.textContent.trim(), 'foo baz');
+        assert.equal(element.textContent.trim(), 'foo baz');
 
         set(this, 'bar', 'baz');
         set(this, 'showContent', 'true');
         await settled();
-        assert.equal(element.shadowRoot.textContent.trim(), 'foo baz baz');
+        assert.equal(element.textContent.trim(), 'foo baz baz');
       });
 
-      test('it can render without a shadow root', async function(assert) {
-        @customElement('web-component', { useShadowRoot: false })
+      test('it can render with a shadow root', async function(assert) {
+        @customElement('web-component', { useShadowRoot: true })
         class EmberCustomElement extends klass {}
 
         const template = hbs`foo bar`;
@@ -190,7 +190,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         await render(hbs`<web-component></web-component>`);
 
         const element = find('web-component');
-        assert.equal(element.textContent.trim(), 'foo bar');
+        assert.equal(element.shadowRoot.textContent.trim(), 'foo bar');
       });
 
       test('it can define multiple custom elements', async function(assert) {
@@ -206,10 +206,10 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         await render(hbs`<foo-component></foo-component><bar-component></bar-component>`);
 
         const foo = find('foo-component');
-        assert.equal(foo.shadowRoot.textContent.trim(), 'foo bar');
+        assert.equal(foo.textContent.trim(), 'foo bar');
 
         const bar = find('bar-component');
-        assert.equal(bar.shadowRoot.textContent.trim(), 'foo bar');
+        assert.equal(bar.textContent.trim(), 'foo bar');
       });
 
       test('it can access the custom element', async function(assert) {
@@ -248,7 +248,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       await render(hbs`<web-component></web-component>`);
       const element = find('web-component');
       await settled();
-      assert.equal(element.shadowRoot.textContent.trim(), 'Welcome to Ember');
+      assert.equal(element.textContent.trim(), 'Welcome to Ember');
     });
   });
 
@@ -257,6 +257,26 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
 
     test('it renders', async function(assert) {
       @customElement('web-component')
+      class TestRoute extends Route {
+
+      }
+      setupRouteForTest(this.owner, TestRoute, 'test-route');
+
+      this.owner.register('template:application', hbs`<web-component></web-component>`);
+      this.owner.register('template:test-route', hbs`<h2 data-test-heading>Hello World</h2>`);
+
+      setupTestRouter(this.owner, function() {
+        this.route('test-route', { path: '/' });
+      });
+
+      this.owner.lookup('router:main').transitionTo('/');
+      await settled();
+      const element = find('web-component');
+      assert.equal(element.textContent.trim(), 'Hello World');
+    });
+
+    test('it can render with a shadow root', async function(assert) {
+      @customElement('web-component', { useShadowRoot: true })
       class TestRoute extends Route {
 
       }
@@ -299,10 +319,10 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       this.owner.lookup('router:main').transitionTo('/');
       await waitUntil(() => find('web-component'));
       const element = find('web-component');
-      await waitUntil(() => element.shadowRoot.querySelector('[data-test-loading]'));
-      assert.equal(element.shadowRoot.textContent.trim(), 'Loading...', 'renders loading substate');
-      await waitUntil(() => element.shadowRoot.querySelector('[data-test-heading]'));
-      assert.equal(element.shadowRoot.textContent.trim(), 'Hello World', 'renders route');
+      await waitUntil(() => element.querySelector('[data-test-loading]'));
+      assert.equal(element.textContent.trim(), 'Loading...', 'renders loading substate');
+      await waitUntil(() => element.querySelector('[data-test-heading]'));
+      assert.equal(element.textContent.trim(), 'Hello World', 'renders route');
     });
 
     test('it renders error substate', async function(assert) {
@@ -329,8 +349,8 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       this.owner.lookup('router:main').transitionTo('/');
       await waitUntil(() => find('web-component'));
       const element = find('web-component');
-      await waitUntil(() => element.shadowRoot.querySelector('[data-test-error]'));
-      assert.equal(element.shadowRoot.textContent.trim(), 'Whoops!', 'renders error substate');
+      await waitUntil(() => element.querySelector('[data-test-error]'));
+      assert.equal(element.textContent.trim(), 'Whoops!', 'renders error substate');
     });
 
     test('it renders routes within routes', async function(assert) {
@@ -360,7 +380,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       await this.owner.lookup('router:main').transitionTo('/foo/bar/baz');
       await settled();
       const element = find('web-component');
-      assert.equal(element.shadowRoot.textContent.trim(), 'foo bar baz', 'renders sub routes');
+      assert.equal(element.textContent.trim(), 'foo bar baz', 'renders sub routes');
     });
 
     test('it transitions between routes', async function(assert) {
@@ -389,10 +409,10 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       await this.owner.lookup('router:main').transitionTo('/bar');
       await settled();
       const element = find('web-component');
-      assert.equal(element.shadowRoot.textContent.trim(), 'foo bar', 'renders first route');
+      assert.equal(element.textContent.trim(), 'foo bar', 'renders first route');
       await this.owner.lookup('router:main').transitionTo('/baz');
       await settled();
-      assert.equal(element.shadowRoot.textContent.trim(), 'foo baz', 'transitions to second route');
+      assert.equal(element.textContent.trim(), 'foo baz', 'transitions to second route');
     });
 
     test('it destroys DOM contents when navigating away', async function(assert) {
@@ -422,7 +442,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       this.owner.lookup('router:main').transitionTo('/bar');
       await settled();
       const element = find('foo-route');
-      assert.notOk(element.shadowRoot.querySelector('[data-test-foo]'), 'it destroys DOM contents');
+      assert.notOk(element.querySelector('[data-test-foo]'), 'it destroys DOM contents');
     });
 
     test('it can preserve DOM contents when navigating away', async function(assert) {
@@ -452,7 +472,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       this.owner.lookup('router:main').transitionTo('/bar');
       await settled();
       const element = find('foo-route');
-      assert.ok(element.shadowRoot.querySelector('[data-test-foo]'), 'it preserves DOM contents');
+      assert.ok(element.querySelector('[data-test-foo]'), 'it preserves DOM contents');
     });
   });
 
