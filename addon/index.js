@@ -10,8 +10,6 @@ import { getOwner, setOwner } from '@ember/application';
 export { default as EmberOutletElement } from './lib/outlet-element';
 export { default as EmberCustomElement } from './lib/custom-element';
 
-// export const ROUTE_CONNECTIONS = new WeakMap();
-
 /**
  * A decorator that allows an Ember or Glimmer component to be instantiated
  * with a custom element.  This means you can define an element tag that

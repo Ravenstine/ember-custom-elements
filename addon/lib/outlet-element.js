@@ -102,7 +102,10 @@ export default class EmberWebOutlet extends HTMLElement {
 function lookupOutlet(outletState, routeName, outletName) {
   const route = outletState.render.owner.lookup(`route:${routeName}`);
   if (!route) return Object.create(null);
-  const routeConnections = ROUTE_CONNECTIONS.get(route);
+  const routeConnections = (() => {
+    if (route.connections) return route.connections;
+    if (ROUTE_CONNECTIONS && ROUTE_CONNECTIONS.get) return ROUTE_CONNECTIONS.get(route);
+  })();
   if (!routeConnections) return null;
   const outletRender = routeConnections.find(outletState => outletState.outlet === outletName);
   function _lookupOutlet(outletState) {
