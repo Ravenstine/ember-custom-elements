@@ -279,7 +279,7 @@ Once your app has been created, every creation of a custom element for it will o
 At present, there are a few options you can pass when creating custom elements:
 
 - **extends**: A string representing the name of a native element your custom element should extend from.  This is the same thing as the `extends` option passed to [window.customElements.define()](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements#High-level_view).
-- **useShadowRoot**: By default, custom elements created for your components use a shadow root.  If you set this option to `false`, a shadow root will not be used.
+- **useShadowRoot**: By default, application content rendered in your custom elements will be placed directly into the main DOM.  If you set this option to `true`, a shadow root will be used.
 - **observedAttributes**: A whitelist of which element attributes to observe.  This sets the native `observedAttributes` static property on [custom elements](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements).  It's suggested that you only use this option if you know what you are doing, as once the `observedAttributes` are set on a defined custom element, it cannot be changed after the fact(remember that custom elements can be only defined once).  The most common reason to define `observedAttributes` would be for performance reasons, as making calls to JavaScript every time any attribute changes is more expensive than if only some attribute changes should call JavaScript.  All that said, you probably don't need this, as ember-custom-elements observes all attribute changes by default.  Does nothing for custom elements that instantiate Ember apps.
 - **customElementClass**: In the extreme edge case that you need to redefine the behavior of the custom element class itself, you can `import { EmberCustomElement } from 'ember-custom-elements';`, extend it into a subclass, and pass that subclass to the `customElementClass` option.  This is definitely an expert tool and, even if you think you need this, you probably don't need it.  This is made available only for the desperate.  The `EmberCustomElement` class should be considered a private entity.
 - **camelizeArgs**: Element attributes must be kabob-case, but if `camelizeArgs` is set to true, these attributes will be exposed to your components in camelCase.
@@ -292,7 +292,7 @@ At present, there are a few options you can pass when creating custom elements:
 #### Options Example
 
 ```javascript
-@customElement('my-component', { extends: 'p', useShadowRoot: false })
+@customElement('my-component', { extends: 'p', useShadowRoot: true })
 export default MyComponent extends Component {
 
 }
