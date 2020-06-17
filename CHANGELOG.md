@@ -1,6 +1,10 @@
 Ember Web Components Changelog
 ==============================
 
+## v2.0.1
+
+- Decorated components shouldn't break when not being invoked from a custom element.
+
 ## v2.0.0
 
 - Replace `this.args.customElement` with the `getCustomElement` helper function.

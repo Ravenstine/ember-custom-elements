@@ -88,41 +88,15 @@ export function customElement() {
       // This uses a string because that seems to be the one
       // way to preserve the name of the original class.
       decoratedClass = (new Function(
-        'targetClass', 'CURRENT_CUSTOM_ELEMENT', 'CUSTOM_ELEMENTS', 'INTERFACED_PROPERTY_DESCRIPTORS',
+        'targetClass', 'construct',
         `
         return class ${targetClass.name} extends targetClass {
           constructor() {
             super(...arguments);
-            const customElement = CURRENT_CUSTOM_ELEMENT.element;
-            CUSTOM_ELEMENTS.set(this, customElement);
-            CURRENT_CUSTOM_ELEMENT.element = null;
-            let ancestor = this.constructor;
-            const self = this;
-            const ancestors = [];
-            while (ancestor) {
-              ancestors.unshift(ancestor);
-              ancestor = Object.getPrototypeOf(ancestor);
-            }
-            for (const ancestor of ancestors) {
-              const descriptors = INTERFACED_PROPERTY_DESCRIPTORS.get(ancestor) || [];
-              for (const { name, desc } of descriptors) {
-                if (typeof desc.value === 'function') {
-                  customElement[name] = self[name].bind(this);
-                } else {
-                  Object.defineProperty(customElement, name, {
-                    get() {
-                      return self[name];
-                    },
-                    set(value) {
-                      self[name] = value;
-                    }
-                  });
-                }
-              }
-            }
+            construct.call(this);
           }
         }
-      `))(targetClass, CURRENT_CUSTOM_ELEMENT, CUSTOM_ELEMENTS, INTERFACED_PROPERTY_DESCRIPTORS);
+      `))(targetClass, constructInstanceForCustomElement);
     }
 
     try {
@@ -250,5 +224,43 @@ function customElementArgs() {
     }
   } else {
     throw new Error('customElement should be passed a tagName string but found none.');
+  }
+}
+
+function constructInstanceForCustomElement() {
+  const customElement = CURRENT_CUSTOM_ELEMENT.element;
+  // There should always be a custom element when the component is
+  // invoked by one, but if a decorated class isn't invoked by a custom
+  // element, it shouldn't fail when being constructed. 
+  if (!customElement) return;
+  CUSTOM_ELEMENTS.set(this, customElement);
+  CURRENT_CUSTOM_ELEMENT.element = null;
+  // Build a prototype chain by finding all ancestors
+  // and sorting them from eldest to youngest
+  let ancestor = this.constructor;
+  const self = this;
+  const ancestors = [];
+  while (ancestor) {
+    ancestors.unshift(ancestor);
+    ancestor = Object.getPrototypeOf(ancestor);
+  }
+  // Go through our list of known property descriptors
+  // for the instance and forward them to the element.
+  for (const ancestor of ancestors) {
+    const descriptors = INTERFACED_PROPERTY_DESCRIPTORS.get(ancestor) || [];
+    for (const { name, desc } of descriptors) {
+      if (typeof desc.value === 'function') {
+        customElement[name] = self[name].bind(this);
+      } else {
+        Object.defineProperty(customElement, name, {
+          get() {
+            return self[name];
+          },
+          set(value) {
+            self[name] = value;
+          }
+        });
+      }
+    }
   }
 }

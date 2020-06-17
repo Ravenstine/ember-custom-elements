@@ -13,7 +13,6 @@ import Ember from 'ember';
  * for keeping track of what routes are connected to which outlet states.
  */
 
-Ember.__loader.require._eak_seen['ember-custom-elements/route-connections'];
 Ember.__loader.define('ember-custom-elements/route-connections', ['exports', '@ember/-internals/routing/lib/system/route'], function(_exports, _route) {
   'use strict';
   Object.defineProperty(_exports, '__esModule', {

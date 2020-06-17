@@ -325,6 +325,19 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
           }
         });
       });
+
+      test('it should still render without a custom element', async function(assert) {
+        @customElement('web-component')
+        class EmberCustomElement extends klass {}
+
+        const template = hbs`<div data-test-component>foo bar</div>`;
+
+        setupComponentForTest(this.owner, EmberCustomElement, template, 'web-component');
+
+        await render(hbs`<WebComponent />`);
+        const element = find('[data-test-component]');
+        assert.equal(element.textContent.trim(), 'foo bar');
+      });
     });
   }
 

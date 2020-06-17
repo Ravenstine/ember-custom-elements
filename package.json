@@ -1,6 +1,6 @@
 {
   "name": "ember-custom-elements",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Easily use custom elements to invoke your Ember components, routes, and applications.",
   "keywords": [
     "ember-addon",
