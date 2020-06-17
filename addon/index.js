@@ -168,7 +168,16 @@ export function customElement() {
  */
 export function getCustomElement(entity) {
   const relatedCustomElement = CUSTOM_ELEMENTS.get(entity);
-  return relatedCustomElement || CURRENT_CUSTOM_ELEMENT.element || null;
+  if (relatedCustomElement) return relatedCustomElement;
+  const currentCustomElement = CURRENT_CUSTOM_ELEMENT.element;
+  if (!currentCustomElement) return null;
+  const customElementClass = currentCustomElement.constructor;
+  if (getCustomElements(entity.constructor).includes(customElementClass)) {
+    CUSTOM_ELEMENTS.set(entity, currentCustomElement);
+    CURRENT_CUSTOM_ELEMENT.element = null;
+    return currentCustomElement;
+  }
+  return null;
 }
 
 /**
