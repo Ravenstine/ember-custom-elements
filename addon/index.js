@@ -6,6 +6,7 @@ import {
   getTargetClass,
   isSupportedClass,
   isComponent,
+  isGlimmerComponent,
   isApp
 } from './lib/common';
 import { getOwner, setOwner } from '@ember/application';
@@ -14,6 +15,9 @@ export { default as EmberOutletElement } from './lib/outlet-element';
 export { default as EmberCustomElement } from './lib/custom-element';
 
 export const CUSTOM_ELEMENTS = new WeakMap();
+export const INTERFACED_PROPERTY_DESCRIPTORS = new WeakMap();
+
+const RESERVED_PROPERTIES = ['init'];
 
 /**
  * A decorator that allows an Ember or Glimmer component to be instantiated
@@ -80,20 +84,45 @@ export function customElement() {
 
     let decoratedClass = targetClass;
 
-    if (isComponent(targetClass) || isApp(targetClass)) {
+    if (isComponent(targetClass) || isGlimmerComponent(targetClass) || isApp(targetClass)) {
       // This uses a string because that seems to be the one
       // way to preserve the name of the original class.
       decoratedClass = (new Function(
-        'targetClass', 'CURRENT_CUSTOM_ELEMENT', 'CUSTOM_ELEMENTS',
+        'targetClass', 'CURRENT_CUSTOM_ELEMENT', 'CUSTOM_ELEMENTS', 'INTERFACED_PROPERTY_DESCRIPTORS',
         `
         return class ${targetClass.name} extends targetClass {
           constructor() {
-            super(...arguments, CURRENT_CUSTOM_ELEMENT.element);
-            CUSTOM_ELEMENTS.set(this, CURRENT_CUSTOM_ELEMENT.element);
+            super(...arguments);
+            const customElement = CURRENT_CUSTOM_ELEMENT.element;
+            CUSTOM_ELEMENTS.set(this, customElement);
             CURRENT_CUSTOM_ELEMENT.element = null;
+            let ancestor = this.constructor;
+            const self = this;
+            const ancestors = [];
+            while (ancestor) {
+              ancestors.unshift(ancestor);
+              ancestor = Object.getPrototypeOf(ancestor);
+            }
+            for (const ancestor of ancestors) {
+              const descriptors = INTERFACED_PROPERTY_DESCRIPTORS.get(ancestor) || [];
+              for (const { name, desc } of descriptors) {
+                if (typeof desc.value === 'function') {
+                  customElement[name] = self[name].bind(this);
+                } else {
+                  Object.defineProperty(customElement, name, {
+                    get() {
+                      return self[name];
+                    },
+                    set(value) {
+                      self[name] = value;
+                    }
+                  });
+                }
+              }
+            }
           }
         }
-      `))(targetClass, CURRENT_CUSTOM_ELEMENT, CUSTOM_ELEMENTS);
+      `))(targetClass, CURRENT_CUSTOM_ELEMENT, CUSTOM_ELEMENTS, INTERFACED_PROPERTY_DESCRIPTORS);
     }
 
     try {
@@ -133,12 +162,38 @@ export function customElement() {
 
 /**
  * Gets the custom element node for a component or application instance.
+ * 
  * @param {*} entity
  * @returns {HTMLElement|null}
  */
 export function getCustomElement(entity) {
   const relatedCustomElement = CUSTOM_ELEMENTS.get(entity);
   return relatedCustomElement || CURRENT_CUSTOM_ELEMENT.element || null;
+}
+
+/**
+ * Sets up a property or method to be interfaced via a custom element.
+ * When used, said property will be accessible on a custom element node
+ * and will retain the same binding.
+ * 
+ * @param {*} target 
+ * @param {String} name 
+ * @param {Object} descriptor 
+ */
+export function forwarded(target, name, descriptor) {
+  const targetClass = target.constructor;
+
+  const desc = { ...descriptor };
+
+  if (RESERVED_PROPERTIES.includes(name)) {
+    throw new Error(`The property name '${name}' is reserved and cannot be an interface for a custom element.`);
+  }
+
+  const descriptors = INTERFACED_PROPERTY_DESCRIPTORS.get(targetClass) || [];
+  descriptors.push({ name, desc });
+  INTERFACED_PROPERTY_DESCRIPTORS.set(targetClass, descriptors);
+
+  return desc;
 }
 
 /**

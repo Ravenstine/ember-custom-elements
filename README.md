@@ -25,6 +25,7 @@ The most flexible way to render parts of your Ember application using custom ele
   * [Applications](#applications)
   * [Options](#options)
   * [Accessing a Custom Element](#accessing-a-custom-element)
+  * [Forwarding Component Properties](#forwarding-component-properties)
 * [Notes](#notes)
   * [Elements](#elements)
   * [Runloop](#runloop)
@@ -323,11 +324,54 @@ module.exports = function(environment) {
 
 ### Accessing a Custom Element
 
-The custom element node that's invoking a component is passed to that component as an argument.
+The custom element node that's invoking a component can be accessed using the `getCustomElement` function.
 
-For Ember components, this is an attribute called `customElement`, which becomes available once `didReceiveAttrs` is fired.
+Simply pass the context of a component; if the component was invoked with a custom element, the node will be returned:
 
-With Glimmer components, it is accessible as `this.args.customElement`.
+```javascript
+import Component from '@glimmer/component';
+import { customElement, getCustomElement } from 'ember-custom-elements';
+
+@customElement('foo-bar')
+export default class FooBar extends Component {
+  constructor() {
+    super(...arguments);
+    const element = getCustomElement(this);
+    // Do something with your element
+    this.foo = element.getAttribute('foo');
+  }
+}
+```
+
+### Forwarding Component Properties
+
+You can create an interface between your component and your custom element using the `forwarded` decorator.  Properties and methods upon which the decorator is used will become accessible on the custom element node.  If an outside force sets one of these properties on a custom element, the value will be set on the component.  Likewise, a forwarded method that's called on a custom element will be called with the context of the component.
+
+```javascript
+import Component from '@glimmer/component';
+import { customElement, forwarded } from 'ember-custom-elements';
+
+@customElement('foo-bar')
+export default class FooBar extends Component {
+  @forwarded
+  bar = 'foobar';
+
+  @forwarded
+  fooBar() {
+    return this.bar.toUpperCase();
+  }
+}
+```
+
+When rendered, you can do this:
+
+```javascript
+const element = document.querySelector('foo-bar');
+element.bar; // 'foobar'
+element.fooBar(); // 'FOOBAR"
+```
+
+If you are using `tracked` from `@glimmer/tracking`, you can use it in tandem with the `forwarded` decorator on properties.
 
 
 ## Notes

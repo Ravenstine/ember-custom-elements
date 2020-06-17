@@ -1,3 +1,4 @@
+import Ember from 'ember';
 import { module, test, } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { set } from '@ember/object';
@@ -19,7 +20,8 @@ import EmberComponent from '@ember/component';
 import GlimmerComponent from '@glimmer/component';
 import DummyApplication from 'dummy/app';
 import Route from '@ember/routing/route';
-import { customElement, getCustomElement } from 'ember-custom-elements';
+import { customElement, forwarded, getCustomElement } from 'ember-custom-elements';
+import { tracked } from '@glimmer/tracking';
 
 module('Integration | Component | ember-custom-elements', function(hooks) {
   setupRenderingTest(hooks);
@@ -248,6 +250,69 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
 
         await render(hbs`<web-component></web-component>`);
         await settled();
+      });
+
+      test('it can interface with custom element properties', async function(assert) {
+        @customElement('web-component')
+        class EmberCustomElement extends klass {
+          @forwarded foo;
+
+          constructor() {
+            super(...arguments);
+            this.foo = 'bar';
+          }
+        }
+
+        const template = hbs`foo bar`;
+        setupComponentForTest(this.owner, EmberCustomElement, template, 'web-component');
+
+        await render(hbs`<web-component></web-component>`);
+        const element = find('web-component');
+        assert.equal(element.foo, 'bar', 'sets a property');
+      });
+
+      // eslint-disable-next-line ember/new-module-imports
+      if (Ember._tracked) {
+        test('it can track interfaced custom element properties', async function(assert) {
+          @customElement('web-component')
+          class EmberCustomElement extends klass {
+            @forwarded
+            @tracked
+            foo;
+  
+            constructor() {
+              super(...arguments);
+            }
+          }
+  
+          const template = hbs`{{this.foo}}`;
+          setupComponentForTest(this.owner, EmberCustomElement, template, 'web-component');
+  
+          await render(hbs`<web-component></web-component>`);
+          const element = find('web-component');
+          element.foo = 'bar';
+          await settled();
+          assert.equal(element.textContent.trim(), 'bar', 'responds to change');
+        });
+      }
+
+      test('it forwards methods', async function(assert) {
+        @customElement('web-component')
+        class EmberCustomElement extends klass {
+          foo = 'foobar';
+
+          @forwarded
+          foobar() {
+            return this.foo.toUpperCase();
+          }
+        }
+
+        const template = hbs`foo bar`;
+        setupComponentForTest(this.owner, EmberCustomElement, template, 'web-component');
+
+        await render(hbs`<web-component></web-component>`);
+        const element = find('web-component');
+        assert.equal(element.foobar(), 'FOOBAR', 'calls method on component');
       });
     });
   }

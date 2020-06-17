@@ -39,7 +39,6 @@ export function getTargetClass(customElement) {
   return customElement[EMBER_WEB_COMPONENTS_TARGET_CLASS];
 }
 
-
 /**
  * Indicates whether a class can be turned into a custom element.
  * @param {Class} targetClass
