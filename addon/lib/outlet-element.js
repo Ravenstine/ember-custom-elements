@@ -1,6 +1,9 @@
 import { getOwner } from '@ember/application';
 import { scheduleOnce } from '@ember/runloop';
 import ROUTE_CONNECTIONS from './route-connections';
+
+export const OUTLET_VIEWS = new WeakMap();
+
 /**
  * A custom element that can render an outlet from an Ember app.
  *
@@ -40,7 +43,7 @@ export default class EmberWebOutlet extends HTMLElement {
     const OutletView = owner.factoryFor('view:-outlet');
     const view = OutletView.create();
     view.appendTo(target);
-    this.view = view;
+    OUTLET_VIEWS.set(this, view);
     this.scheduleUpdateOutletState = this.scheduleUpdateOutletState.bind(this);
     router.on('routeWillChange', this.scheduleUpdateOutletState);
     router.on('routeDidChange', this.scheduleUpdateOutletState);
@@ -70,7 +73,8 @@ export default class EmberWebOutlet extends HTMLElement {
       routeName = this.route;
     }
     const outletState = lookupOutlet(router._toplevelView.ref.outletState, routeName, this.outlet) || {};
-    this.view.setOutletState(outletState);
+    const view = OUTLET_VIEWS.get(this);
+    view.setOutletState(outletState);
   }
 
   disconnectedCallback() {
@@ -82,10 +86,8 @@ export default class EmberWebOutlet extends HTMLElement {
   }
 
   async destroyOutlet() {
-    if (this.view) {
-      await this.view.destroy();
-      this.view = null;
-    }
+    const view = OUTLET_VIEWS.get(this);
+    if (view) await view.destroy();
     const target = this.shadowRoot || this;
     if (this.preserveOutletContent !== 'true') target.innerHTML = '';
   }

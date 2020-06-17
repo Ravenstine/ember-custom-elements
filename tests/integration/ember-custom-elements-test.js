@@ -1,7 +1,7 @@
 import { module, test, } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { set } from '@ember/object';
-import { later } from '@ember/runloop';
+import { later, scheduleOnce } from '@ember/runloop';
 import { find,
          render,
          waitUntil,
@@ -19,7 +19,7 @@ import EmberComponent from '@ember/component';
 import GlimmerComponent from '@glimmer/component';
 import DummyApplication from 'dummy/app';
 import Route from '@ember/routing/route';
-import { customElement } from 'ember-custom-elements';
+import { customElement, getCustomElement } from 'ember-custom-elements';
 
 module('Integration | Component | ember-custom-elements', function(hooks) {
   setupRenderingTest(hooks);
@@ -45,8 +45,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       });
 
       test('it supports function syntax', async function(assert) {
-        class EmberCustomElement extends klass {}
-        customElement(EmberCustomElement, 'web-component');
+        const EmberCustomElement = customElement(class extends klass {}, 'web-component');
 
         const template = hbs`foo bar`;
 
@@ -212,21 +211,37 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         assert.equal(bar.textContent.trim(), 'foo bar');
       });
 
-      test('it can access the custom element', async function(assert) {
+      test('it can access the custom element in the constructor', async function(assert) {
         assert.expect(1);
 
         @customElement('web-component', { useShadowRoot: false })
         class EmberCustomElement extends klass {
           constructor() {
             super(...arguments);
-            if (!this.args) return;
-            const element = this.args.customElement;
+            const element = getCustomElement(this);
             assert.equal(element.tagName, 'WEB-COMPONENT', 'found the custom element');
           }
-          didReceiveAttrs() {
-            const element = this.customElement;
+        }
+
+        setupComponentForTest(this.owner, EmberCustomElement, hbs``, 'web-component');
+
+        await render(hbs`<web-component></web-component>`);
+        await settled();
+      });
+
+      test('it can access the custom element in another method', async function(assert) {
+        assert.expect(1);
+
+        @customElement('web-component', { useShadowRoot: false })
+        class EmberCustomElement extends klass {
+          constructor() {
+            super(...arguments);
+            scheduleOnce('actions', this, 'someMethod');
+          }
+          someMethod() {
+            const element = getCustomElement(this);
             assert.equal(element.tagName, 'WEB-COMPONENT', 'found the custom element');
-          }å
+          }
         }
 
         setupComponentForTest(this.owner, EmberCustomElement, hbs``, 'web-component');
@@ -249,6 +264,22 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       const element = find('web-component');
       await settled();
       assert.equal(element.textContent.trim(), 'Welcome to Ember');
+    });
+
+    test('it can access the custom element', async function(assert) {
+      assert.expect(1);
+      @customElement('web-component')
+      // eslint-disable-next-line no-unused-vars
+      class EmberWebApplication extends DummyApplication {
+        autoboot = false;
+        constructor() {
+          super(...arguments);
+          const element = getCustomElement(this);
+          assert.equal(element.tagName, 'WEB-COMPONENT', 'found the custom element');
+        }
+      }
+      setupApplicationForTest(this.owner, EmberWebApplication, 'ember-web-application');
+      render(hbs`<web-component></web-component>`);
     });
   });
 

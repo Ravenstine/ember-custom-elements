@@ -69,8 +69,7 @@ export function compileTemplate(componentName, attributeNames=[]) {
   // Set args
   for (const name of attributeNames)
     pushArg(name, `attrs.${name}`);
-  // Set customElement arg
-  pushArg('customElement', 'customElement');
+  // Return a template factory
   template.id = componentName;
   template.block = JSON.stringify(block);
   return createTemplateFactory(template);

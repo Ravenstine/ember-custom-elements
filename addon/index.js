@@ -1,14 +1,19 @@
-import EmberCustomElement from './lib/custom-element';
+// eslint-disable-next-line no-unused-vars
+import EmberCustomElement, { CURRENT_CUSTOM_ELEMENT, INITIALIZERS } from './lib/custom-element';
 import { 
   getCustomElements,
   addCustomElement,
   getTargetClass,
-  isSupportedClass
+  isSupportedClass,
+  isComponent,
+  isApp
 } from './lib/common';
 import { getOwner, setOwner } from '@ember/application';
 
 export { default as EmberOutletElement } from './lib/outlet-element';
 export { default as EmberCustomElement } from './lib/custom-element';
+
+export const CUSTOM_ELEMENTS = new WeakMap();
 
 /**
  * A decorator that allows an Ember or Glimmer component to be instantiated
@@ -73,6 +78,24 @@ export function customElement() {
     if (!isSupportedClass(targetClass))
       throw new Error(`The target object for custom element \`${tagName}\` is not an Ember component, route or application.`);
 
+    let decoratedClass = targetClass;
+
+    if (isComponent(targetClass) || isApp(targetClass)) {
+      // This uses a string because that seems to be the one
+      // way to preserve the name of the original class.
+      decoratedClass = (new Function(
+        'targetClass', 'CURRENT_CUSTOM_ELEMENT', 'CUSTOM_ELEMENTS',
+        `
+        return class ${targetClass.name} extends targetClass {
+          constructor() {
+            super(...arguments, CURRENT_CUSTOM_ELEMENT.element);
+            CUSTOM_ELEMENTS.set(this, CURRENT_CUSTOM_ELEMENT.element);
+            CURRENT_CUSTOM_ELEMENT.element = null;
+          }
+        }
+      `))(targetClass, CURRENT_CUSTOM_ELEMENT, CUSTOM_ELEMENTS);
+    }
+
     try {
       // Create a custom HTMLElement for our component.
       const customElementClass = customElementOptions.customElementClass ||  EmberCustomElement;
@@ -88,14 +111,17 @@ export function customElement() {
     }
 
     // Overwrite the original config on the element
-    // const initialize = element.prototype.initialize;
-    element.prototype.initialize = function() {
+    const initialize = function() {
       const ENV = getOwner(this).resolveRegistration('config:environment') || {};
       const { defaultOptions = {} } = ENV.emberCustomElements || {};
       this.options = Object.assign({}, defaultOptions, customElementOptions);
     }
+    const initializers = [initialize];
+    INITIALIZERS.set(element, initializers);
 
-    addCustomElement(targetClass, element);
+    addCustomElement(decoratedClass, element);
+
+    return decoratedClass;
   };
 
   if (targetClass) {
@@ -103,6 +129,16 @@ export function customElement() {
   } else {
     return decorate;
   }
+}
+
+/**
+ * Gets the custom element node for a component or application instance.
+ * @param {*} entity
+ * @returns {HTMLElement|null}
+ */
+export function getCustomElement(entity) {
+  const relatedCustomElement = CUSTOM_ELEMENTS.get(entity);
+  return relatedCustomElement || CURRENT_CUSTOM_ELEMENT.element || null;
 }
 
 /**
@@ -124,12 +160,12 @@ export function setupCustomElementFor(instance, registrationName) {
   const componentClass = instance.resolveRegistration(registrationName);
   const customElements = getCustomElements(componentClass);
   for (const customElement of customElements) {
-    const initialize = customElement.prototype.initialize;
-    customElement.prototype.initialize = function() {
+    const initialize = function() {
       setOwner(this, instance);
       this.parsedName = parsedName;
-      if (initialize) initialize.apply(this);
     };
+    const initializers = INITIALIZERS.get(customElement) || [];
+    initializers.unshift(initialize);
   }
 }
 

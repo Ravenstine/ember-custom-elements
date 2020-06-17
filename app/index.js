@@ -1,5 +1,6 @@
 export {
   customElement,
+  getCustomElement,
   setupCustomElementFor,
   EmberOutletElement,
   EmberCustomElement
