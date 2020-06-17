@@ -1,6 +1,11 @@
 Ember Web Components Changelog
 ==============================
 
+## v2.0.0
+
+- Replace `this.args.customElement` with the `getCustomElement` helper function.
+- Implement `forwarded` decorator to provide a way for creating interfaces between components and custom elements.
+
 ## v1.0.0
 
 - Change `useShadowRoot` to be false by default, making shadow roots opt-in.  This is to avoid extra complexity when rendering components that depend on global styles, which is almost always the expectation.
