@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import Ember from 'ember';
 import { module, test, } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
@@ -313,6 +314,16 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         await render(hbs`<web-component></web-component>`);
         const element = find('web-component');
         assert.equal(element.foobar(), 'FOOBAR', 'calls method on component');
+      });
+
+      test('it throws error when applied to static properties', async function(assert) {
+        assert.throws(() => {
+          @customElement('web-component')
+          class EmberCustomElement extends klass {
+            @forwarded
+            static foo = 'foobar';
+          }
+        });
       });
     });
   }

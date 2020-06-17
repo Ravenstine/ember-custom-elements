@@ -181,13 +181,15 @@ export function getCustomElement(entity) {
  * @param {Object} descriptor 
  */
 export function forwarded(target, name, descriptor) {
+  if (typeof target !== 'object')
+    throw new Error(`You are using the '@forwarded' decorator on a class or function.  It can only be used in a class body when definiing instance properties.`);
+
   const targetClass = target.constructor;
 
   const desc = { ...descriptor };
 
-  if (RESERVED_PROPERTIES.includes(name)) {
+  if (RESERVED_PROPERTIES.includes(name))
     throw new Error(`The property name '${name}' is reserved and cannot be an interface for a custom element.`);
-  }
 
   const descriptors = INTERFACED_PROPERTY_DESCRIPTORS.get(targetClass) || [];
   descriptors.push({ name, desc });
