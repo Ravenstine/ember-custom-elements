@@ -49,6 +49,8 @@ This add-on almost certainly won't work with versions of `ember-source` prior to
 ember install ember-custom-elements
 ```
 
+If you are targeting older browsers, you may want to use a [polyfill for custom elements](https://github.com/webcomponents/polyfills/tree/master/packages/custom-elements).  Other features of web components are also available as [polyfills](https://github.com/webcomponents/polyfills).
+
 
 ## Usage
 
@@ -77,10 +79,10 @@ Now you can use your component _anywhere_ inside the window that your app was in
 In the case that you can't use TC39's proposed decorator syntax, you can call customElement as a function and pass the target class as the first argument:
 
 ```javascript
-customElement(MyComponent, 'my-component');
+export default customElement(MyComponent, 'my-component');
 ```
 
-However, it's recommended that you upgrade to a recent version of [ember-cli-babel]() so you can use decorator syntax out of the box, or manually install [babel-plugin-proposal-decorators](https://babeljs.io/docs/en/babel-plugin-proposal-decorators).
+However, it's recommended that you upgrade to a recent version of [ember-cli-babel](https://github.com/babel/ember-cli-babel) so you can use decorator syntax out of the box, or manually install [babel-plugin-proposal-decorators](https://babeljs.io/docs/en/babel-plugin-proposal-decorators).
 
 
 
@@ -345,7 +347,9 @@ export default class FooBar extends Component {
 
 ### Forwarding Component Properties
 
-You can create an interface between your component and your custom element using the `forwarded` decorator.  Properties and methods upon which the decorator is used will become accessible on the custom element node.  If an outside force sets one of these properties on a custom element, the value will be set on the component.  Likewise, a forwarded method that's called on a custom element will be called with the context of the component.
+HTML attributes can only be strings which, while they work well enough for many purposes, can be limiting.
+
+If you need to share state between your component and the outside world, you can create an interface to your custom element using the `forwarded` decorator.  Properties and methods upon which the decorator is used will become accessible on the custom element node.  If an outside force sets one of these properties on a custom element, the value will be set on the component.  Likewise, a forwarded method that's called on a custom element will be called with the context of the component.
 
 ```javascript
 import Component from '@glimmer/component';
@@ -382,7 +386,7 @@ If you are using `tracked` from `@glimmer/tracking`, you can use it in tandem wi
 
 Once a custom element is defined using `window.customElements.define`, it cannot be redefined.
 
-This add-on works around that issue by changing the definition of the element class that it already defined.  It's necessary in order for application and integration tests to work without encountering errors.  This behavior will only be applied to custom elements defined using this add-on.  If you try to define an application component on a custom element defined outside of this add-on, an error will be thrown.
+This add-on works around that issue by reusing the same custom element class and changing the configuration associated with it.  It's necessary in order for application and integration tests to work without encountering errors.  This behavior will only be applied to custom elements defined using this add-on.  If you try to define an application component on a custom element defined outside of this add-on, an error will be thrown.
 
 
 
