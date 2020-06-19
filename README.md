@@ -11,6 +11,7 @@ The most flexible way to render parts of your Ember application using custom ele
 
 - [Tic Tac Toe game using Ember and React](https://ember-twiddle.com/8fa62cb81a790a3afb6713fd9f2480b5) (based on the [React.js tutorial](https://reactjs.org/tutorial/tutorial.html))
 - [Super Rentals w/ animated route transitions](https://ember-twiddle.com/aa7bd7a7d36641dd5daa5ad6b6eebb5a) (combines custom elements for routes with [Ionic Framework](https://ionicframework.com/)'s animated nav)
+- [Nifty Squares](https://ember-twiddle.com/f99d7cb679baf906c3d6b1435e52fdf9) (demonstrates dynamic block content)
 
 
 ## Table of Contents
