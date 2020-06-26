@@ -19,6 +19,11 @@ module.exports = {
     if (!hasPlugin(target, plugin)) {
       addPlugin(target, plugin);
     }
+
+    for (const addon of this.addons) {
+      if (hasPlugin(addon, plugin)) continue;
+      addPlugin(addon, plugin);
+    }
   },
   treeForAddon(tree) {
     let outputTree = replace(tree, {

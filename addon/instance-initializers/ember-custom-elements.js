@@ -27,18 +27,12 @@ export function initialize(instance) {
     const entityNames = instance.__registry__.fallback.resolver.knownForType(type);
     for (const entityName in entityNames) {
       const parsedName = instance.__registry__.fallback.resolver.parseName(entityName);
-      const moduleName = instance.__registry__.fallback.resolver.findModuleName(parsedName);
-      const _module = instance.__registry__.fallback.resolver._moduleRegistry._entries[moduleName];
-      const code = _module.callback.toString();
-      const { 
-        emberCustomElements = {}
-      } = instance.resolveRegistration('config:environment');
+      const _moduleName = instance.__registry__.fallback.resolver.findModuleName(parsedName);
+      const _module = instance.__registry__.fallback.resolver._moduleRegistry._entries[_moduleName];
       // Only evaluate the component module if its code contains our sigil.
       // This optimization is ignored in testing so that components can be
       // dynamically created and registered.
-      const shouldEvalModule =
-        emberCustomElements.deoptimizeModuleEval ||
-        /\n\s*"~~EMBER~CUSTOM~ELEMENT~~";\s*\n/.test(code);
+      const shouldEvalModule = determineIfShouldEvalModule(instance, _module);
       if (!shouldEvalModule) continue;
       const componentClass = instance.resolveRegistration(entityName);
       const customElements = getCustomElements(componentClass);
@@ -63,3 +57,21 @@ export function initialize(instance) {
 export default {
   initialize
 };
+
+function determineIfShouldEvalModule(instance, _module) {
+  const {
+    emberCustomElements = {}
+  } = instance.resolveRegistration('config:environment');
+  if (emberCustomElements.deoptimizeModuleEval) return true;
+  const code = _module.callback.toString();
+  if (detectSigil(code)) return true;
+  for (const moduleName of _module.deps) {
+    const dep = instance.__registry__.fallback.resolver._moduleRegistry._entries[moduleName];
+    if (dep && detectSigil(dep.callback.toString())) return true;
+  }
+  return false;
+}
+
+function detectSigil(code) {
+  return /\n\s*"~~EMBER~CUSTOM~ELEMENT~~";\s*\n/.test(code);
+}
