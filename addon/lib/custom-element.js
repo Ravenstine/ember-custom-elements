@@ -2,6 +2,7 @@ import { notifyPropertyChange, set } from '@ember/object';
 import { schedule, scheduleOnce } from '@ember/runloop';
 import { getOwner, setOwner } from '@ember/application';
 import { camelize } from '@ember/string';
+import { getInitializationPromise } from '../instance-initializers/ember-custom-elements';
 import { compileTemplate } from './template-compiler';
 import OutletElement, { OUTLET_VIEWS } from './outlet-element';
 import BlockContent from './block-content';
@@ -59,11 +60,6 @@ export default class EmberCustomElement extends HTMLElement {
     return this.options.preserveOutletContent;
   }
 
-  constructor() {
-    super(...arguments);
-    const initializers = INITIALIZERS.get(this.constructor) || [];
-    for (const initializer of initializers) initializer.call(this);
-  }
   /**
    * Sets up the component instance on element insertion and creates an
    * observer to update the component with attribute changes.
@@ -76,6 +72,12 @@ export default class EmberCustomElement extends HTMLElement {
     // connectedCallback may be called once your element is no longer connected, use Node.isConnected to make sure.
     // https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements
     if (!this.isConnected) return;
+
+    await getInitializationPromise();
+
+    const initializers = INITIALIZERS.get(this.constructor) || [];
+    for (const initializer of initializers) initializer.call(this);
+
     const { type } = this.parsedName;
     if (type === 'component') return connectComponent.call(this);
     if (type === 'route') return connectRoute.call(this);
