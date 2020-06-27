@@ -1,5 +1,9 @@
 // eslint-disable-next-line no-unused-vars
-import EmberCustomElement, { CURRENT_CUSTOM_ELEMENT, INITIALIZERS } from './lib/custom-element';
+import EmberCustomElement, {
+  CURRENT_CUSTOM_ELEMENT,
+  CUSTOM_ELEMENT_OPTIONS,
+  INITIALIZERS
+} from './lib/custom-element';
 import {
   getCustomElements,
   addCustomElement,
@@ -9,7 +13,7 @@ import {
   isApp
 } from './lib/common';
 import { isGlimmerComponent } from './lib/glimmer-compat';
-import { getOwner, setOwner } from '@ember/application';
+import { setOwner } from '@ember/application';
 
 export { default as EmberOutletElement } from './lib/outlet-element';
 export { default as EmberCustomElement } from './lib/custom-element';
@@ -114,13 +118,7 @@ export function customElement() {
     }
 
     // Overwrite the original config on the element
-    const initialize = function() {
-      const ENV = getOwner(this).resolveRegistration('config:environment') || {};
-      const { defaultOptions = {} } = ENV.emberCustomElements || {};
-      this.options = Object.assign({}, defaultOptions, customElementOptions);
-    }
-    const initializers = [initialize];
-    INITIALIZERS.set(element, initializers);
+    CUSTOM_ELEMENT_OPTIONS.set(element, customElementOptions);
 
     addCustomElement(decoratedClass, element);
 
@@ -204,8 +202,7 @@ export function setupCustomElementFor(instance, registrationName) {
       setOwner(this, instance);
       this.parsedName = parsedName;
     };
-    const initializers = INITIALIZERS.get(customElement) || [];
-    initializers.unshift(initialize);
+    INITIALIZERS.set(customElement, initialize);
   }
 }
 
