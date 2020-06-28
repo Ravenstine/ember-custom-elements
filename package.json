@@ -30,7 +30,6 @@
   "dependencies": {
     "broccoli-string-replace": "^0.1.2",
     "ember-cli-babel": "^7.18.0",
-    "ember-cli-babel-plugin-helpers": "^1.1.0",
     "ember-cli-htmlbars": "^4.2.3",
     "rsvp": "^4.8.5"
   },

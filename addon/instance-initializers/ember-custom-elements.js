@@ -29,7 +29,7 @@ export function initialize(instance) {
       const parsedName = instance.__registry__.fallback.resolver.parseName(entityName);
       const _moduleName = instance.__registry__.fallback.resolver.findModuleName(parsedName);
       const _module = instance.__registry__.fallback.resolver._moduleRegistry._entries[_moduleName];
-      // Only evaluate the component module if its code contains our sigil.
+      // Only evaluate the component module if it is using our decorator.
       // This optimization is ignored in testing so that components can be
       // dynamically created and registered.
       const shouldEvalModule = determineIfShouldEvalModule(instance, _module);
@@ -58,20 +58,25 @@ export default {
   initialize
 };
 
+const DECORATOR_REGEX = /customElement\s*\){0,1}\s*\(/;
+
 function determineIfShouldEvalModule(instance, _module) {
   const {
     emberCustomElements = {}
   } = instance.resolveRegistration('config:environment');
   if (emberCustomElements.deoptimizeModuleEval) return true;
-  const code = _module.callback.toString();
-  if (detectSigil(code)) return true;
-  for (const moduleName of _module.deps) {
-    const dep = instance.__registry__.fallback.resolver._moduleRegistry._entries[moduleName];
-    if (dep && detectSigil(dep.callback.toString())) return true;
+  function _moduleShouldEval(_module) {
+    for (const moduleName of _module.deps) {
+      // Check if ember-custom-elements is a dependency of the module
+      if (moduleName === 'ember-custom-elements') {
+        const code = (_module.callback || function() {}).toString();
+        // Test if a function named "customElement" is called within the module
+        if (DECORATOR_REGEX.test(code)) return true;
+      }
+      const dep = instance.__registry__.fallback.resolver._moduleRegistry._entries[moduleName];
+      if (dep && _moduleShouldEval(dep)) return true;
+    }
+    return false;
   }
-  return false;
-}
-
-function detectSigil(code) {
-  return /\n\s*"~~EMBER~CUSTOM~ELEMENT~~";\s*\n/.test(code);
+  return _moduleShouldEval(_module);
 }
