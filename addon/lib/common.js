@@ -1,6 +1,7 @@
 import Application from '@ember/application';
 import Route from '@ember/routing/route';
 import EmberComponent from '@ember/component';
+import { isGlimmerComponent } from './glimmer-compat';
 
 const EMBER_WEB_COMPONENTS_CUSTOM_ELEMENTS = Symbol('EMBER_WEB_COMPONENTS_CUSTOM_ELEMENTS');
 const EMBER_WEB_COMPONENTS_TARGET_CLASS = Symbol('EMBER_WEB_COMPONENTS_TARGET_CLASS');
@@ -82,43 +83,6 @@ export function isRoute(targetClass) {
  */
 export function isComponent(targetClass) {
   return isAncestorOf(targetClass, EmberComponent);
-}
-
-/**
- * Indicates whether a class is a Glimmer component.
- * This function makes a best guess rather than checking
- * for a matching import because we can't guarantee that
- * the consuming app will be using Glimmer components.
- *
- * This is acceptable because these checker functions are
- * only currently used to throw an error when the developer
- * tries to use the decorator on something they shouldn't.
- *
- * @param {Class} targetClass
- * @private
- * @returns {Boolean}
- */
-export function isGlimmerComponent(targetClass) {
-  const flattenedPrototypeKeys = new Set();
-
-  if (!targetClass) return false;
-
-  let ancestor = targetClass;
-  let hasGlimmerDebugComponentAncestor = false;
-
-  while (ancestor) {
-    if (ancestor.name === 'GlimmerDebugComponent') hasGlimmerDebugComponentAncestor = true;
-    ancestor = Object.getPrototypeOf(ancestor);
-    if (!ancestor || !ancestor.prototype) continue;
-    for (const key in Object.getOwnPropertyDescriptors(ancestor.prototype)) {
-      flattenedPrototypeKeys.add(key);
-    }
-  }
-
-  return hasGlimmerDebugComponentAncestor &&
-         flattenedPrototypeKeys.has('bounds') &&
-         flattenedPrototypeKeys.has('element') &&
-         flattenedPrototypeKeys.has('debugName');
 }
 
 function isAncestorOf(a, b) {
