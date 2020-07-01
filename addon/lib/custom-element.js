@@ -8,6 +8,7 @@ import OutletElement, { OUTLET_VIEWS } from './outlet-element';
 import BlockContent from './block-content';
 
 export const CURRENT_CUSTOM_ELEMENT = { element: null };
+export const CUSTOM_ELEMENT_OPTIONS = new WeakMap();
 export const INITIALIZERS = new WeakMap();
 
 const APPS = new WeakMap();
@@ -44,20 +45,22 @@ export default class EmberCustomElement extends HTMLElement {
    * @returns {String|null}
    */
   get outlet() {
-    return this.options.outletName || 'main';
+    const options = getOptions(this);
+    return options.outletName || 'main';
   }
   /**
    * If the referenced class is a route, and this is set to `true`, the DOM tree
    * inside the element will not be cleared when the route is transitioned away
    * until the element itself is destroyed.
-   * 
+   *
    * This only applies to routes.  No behavior changes when applied to components
    * or applications.
-   * 
+   *
    * @returns {Boolean=false}
    */
   get preserveOutletContent() {
-    return this.options.preserveOutletContent;
+    const options = getOptions(this);
+    return options.preserveOutletContent;
   }
 
   /**
@@ -75,8 +78,8 @@ export default class EmberCustomElement extends HTMLElement {
 
     await getInitializationPromise();
 
-    const initializers = INITIALIZERS.get(this.constructor) || [];
-    for (const initializer of initializers) initializer.call(this);
+    const initializer = INITIALIZERS.get(this.constructor);
+    initializer.call(this);
 
     const { type } = this.parsedName;
     if (type === 'component') return connectComponent.call(this);
@@ -126,10 +129,11 @@ function updateComponentArgs() {
   try {
     const view = COMPONENT_VIEWS.get(this);
     if (!view) return;
+    const options = getOptions(this);
     const attrs = { ...view.attrs };
     set(view, 'attrs', attrs);
     for (const attr of changes) {
-      const attrName = this.options.camelizeArgs ? camelize(attr) : attr;
+      const attrName = options.camelizeArgs ? camelize(attr) : attr;
       attrs[attrName] = this.getAttribute(attr);
       notifyPropertyChange(view, `attrs.${attrName}`);
     }
@@ -158,14 +162,15 @@ async function connectComponent() {
   // Capture block content and replace
   const blockContent = BlockContent.from(this.childNodes);
   BLOCK_CONTENTS.set(this, blockContent);
-  const useShadowRoot = !!this.options.useShadowRoot;
+  const options = getOptions(this);
+  const useShadowRoot = !!options.useShadowRoot;
   if (useShadowRoot) this.attachShadow({mode: 'open'});
   const target = this.shadowRoot ? this.shadowRoot : this;
   if (target === this) this.innerHTML = '';
   // Setup attributes and attribute observer
   const attrs = {};
   for (const attr of this.getAttributeNames()) {
-    const attrName = this.options.camelizeArgs ? camelize(attr) : attr;
+    const attrName = options.camelizeArgs ? camelize(attr) : attr;
     attrs[attrName] = this.getAttribute(attr);
   }
   const observedAttributes = this.constructor.observedAttributes;
@@ -174,7 +179,7 @@ async function connectComponent() {
     // to be tracked if they become present later and set to be observed.
     // eslint-disable-next-line no-prototype-builtins
     for (const attr of observedAttributes) if (!attrs.hasOwnProperty(attr)) {
-      const attrName = this.options.camelizeArgs ? camelize(attr) : attr;
+      const attrName = options.camelizeArgs ? camelize(attr) : attr;
       attrs[attrName] = null;
     }
   } else if (observedAttributes !== false) {
@@ -216,7 +221,8 @@ async function connectComponent() {
  * @private
  */
 async function connectRoute() {
-  const useShadowRoot = this.options.useShadowRoot;
+  const options = getOptions(this);
+  const useShadowRoot = options.useShadowRoot;
   if (useShadowRoot) {
     this.attachShadow({ mode: 'open' });
   }
@@ -224,11 +230,11 @@ async function connectRoute() {
 }
 /**
  * Sets up an application to be rendered in the element.
- * 
+ *
  * Here, we are actually booting the app into a detached
  * element and then relying on `connectRoute` to render
  * the application route for the app instance.
- * 
+ *
  * There are a few advantages to this.  This allows the
  * rendered content to be less "deep", meaning that we
  * don't need two useless elements, which the app
@@ -236,7 +242,7 @@ async function connectRoute() {
  * second advantage is that this prevents problems
  * rendering apps within other apps in a way that doesn't
  * require the use of a shadowRoot.
- * 
+ *
  * @private
  */
 async function connectApplication() {
@@ -253,6 +259,13 @@ async function connectApplication() {
   await instance.startRouting();
   setOwner(this, instance);
   connectRoute.call(this);
+}
+
+function getOptions(element) {
+  const customElementOptions = CUSTOM_ELEMENT_OPTIONS.get(element.constructor);
+  const ENV = getOwner(element).resolveRegistration('config:environment') || {};
+  const { defaultOptions = {} } = ENV.emberCustomElements || {};
+  return Object.assign({}, defaultOptions, customElementOptions);
 }
 
 EmberCustomElement.prototype.updateOutletState = OutletElement.prototype.updateOutletState;
