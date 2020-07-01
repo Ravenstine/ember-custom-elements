@@ -30,7 +30,6 @@
   "dependencies": {
     "broccoli-string-replace": "^0.1.2",
     "ember-cli-babel": "^7.18.0",
-    "ember-cli-babel-plugin-helpers": "^1.1.0",
     "ember-cli-htmlbars": "^4.2.3",
     "rsvp": "^4.8.5"
   },
@@ -40,6 +39,7 @@
     "@glimmer/tracking": "^1.0.0",
     "babel-eslint": "^10.1.0",
     "broccoli-asset-rev": "^3.0.0",
+    "dummy-add-on": "file:tests/dummy-add-on",
     "ember-auto-import": "^1.5.3",
     "ember-cli": "~3.18.0",
     "ember-cli-dependency-checker": "^3.2.0",
@@ -70,7 +70,8 @@
     "edition": "octane"
   },
   "ember-addon": {
-    "configPath": "tests/dummy/config"
+    "configPath": "tests/dummy/config",
+    "paths": []
   },
   "peerDependencies": {
     "ember-source": ">=3.6.0"

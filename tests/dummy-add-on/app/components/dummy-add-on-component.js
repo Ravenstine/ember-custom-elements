@@ -1,0 +1,1 @@
+export { default } from 'dummy-add-on/components/dummy-add-on-component';

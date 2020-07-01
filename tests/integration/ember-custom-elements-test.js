@@ -280,15 +280,15 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
             @forwarded
             @tracked
             foo;
-  
+
             constructor() {
               super(...arguments);
             }
           }
-  
+
           const template = hbs`{{this.foo}}`;
           setupComponentForTest(this.owner, EmberCustomElement, template, 'web-component');
-  
+
           await render(hbs`<web-component></web-component>`);
           const element = find('web-component');
           element.foo = 'bar';
@@ -625,6 +625,18 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       } catch (error) {
         assert.equal(error.message, 'A custom element called `some-other-custom-element` is already defined by something else.');
       }
+    });
+  });
+
+  module('add-ons', function() {
+    test('can be used within an add-on', async function(assert) {
+      /**
+       * See lib/dummy-add-on to see how and where this
+       * custom element is being defined.
+       */
+      await render(hbs`<dummy-add-on-component></dummy-add-on-component>`);
+      const element = find('dummy-add-on-component');
+      assert.equal(element.textContent.trim(), 'Foo Bar');
     });
   });
 });
