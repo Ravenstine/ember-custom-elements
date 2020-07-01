@@ -1,7 +1,13 @@
 Ember Web Components Changelog
 ==============================
 
+## v2.0.3
+
+- Fix support for use of the decorator within add-ons
+- Fix Glimmer component check for production
+
 ## v2.0.2
+
 - Ensure `connectedCallback` runs after Ember initializer
 
 ## v2.0.1
