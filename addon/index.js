@@ -1,14 +1,14 @@
 // eslint-disable-next-line no-unused-vars
 import EmberCustomElement, { CURRENT_CUSTOM_ELEMENT, INITIALIZERS } from './lib/custom-element';
-import { 
+import {
   getCustomElements,
   addCustomElement,
   getTargetClass,
   isSupportedClass,
   isComponent,
-  isGlimmerComponent,
   isApp
 } from './lib/common';
+import { isGlimmerComponent } from './lib/glimmer-compat';
 import { getOwner, setOwner } from '@ember/application';
 
 export { default as EmberOutletElement } from './lib/outlet-element';
@@ -136,7 +136,7 @@ export function customElement() {
 
 /**
  * Gets the custom element node for a component or application instance.
- * 
+ *
  * @param {*} entity
  * @returns {HTMLElement|null}
  */
@@ -158,10 +158,10 @@ export function getCustomElement(entity) {
  * Sets up a property or method to be interfaced via a custom element.
  * When used, said property will be accessible on a custom element node
  * and will retain the same binding.
- * 
- * @param {*} target 
- * @param {String} name 
- * @param {Object} descriptor 
+ *
+ * @param {*} target
+ * @param {String} name
+ * @param {Object} descriptor
  */
 export function forwarded(target, name, descriptor) {
   if (typeof target !== 'object')
@@ -231,7 +231,7 @@ function constructInstanceForCustomElement() {
   const customElement = CURRENT_CUSTOM_ELEMENT.element;
   // There should always be a custom element when the component is
   // invoked by one, but if a decorated class isn't invoked by a custom
-  // element, it shouldn't fail when being constructed. 
+  // element, it shouldn't fail when being constructed.
   if (!customElement) return;
   CUSTOM_ELEMENTS.set(this, customElement);
   CURRENT_CUSTOM_ELEMENT.element = null;
