@@ -4,7 +4,7 @@ const replace = require('broccoli-string-replace');
 
 'use strict';
 
-const BASE_TEMPLATE_STRING = '<ComponentName @attributeName={{this.valueName}}>{{this.blockContent}}</ComponentName>';
+const BASE_TEMPLATE_STRING = '<ComponentName @argName={{this._attrs.valueName}}>{{this.blockContent}}</ComponentName>';
 
 module.exports = {
   name: require('./package').name,

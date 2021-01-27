@@ -1,6 +1,6 @@
 {
   "name": "ember-custom-elements",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Easily use custom elements to invoke your Ember components, routes, and applications.",
   "keywords": [
     "ember-addon",
@@ -30,7 +30,7 @@
   "dependencies": {
     "broccoli-string-replace": "^0.1.2",
     "ember-cli-babel": "^7.18.0",
-    "ember-cli-htmlbars": "^4.2.3",
+    "ember-cli-htmlbars": "^5.3.1",
     "rsvp": "^4.8.5"
   },
   "devDependencies": {
@@ -52,7 +52,7 @@
     "ember-maybe-import-regenerator": "^0.1.6",
     "ember-qunit": "^4.6.0",
     "ember-resolver": "^7.0.0",
-    "ember-source": "^3.16.0",
+    "ember-source": "^3.20.0",
     "ember-source-channel-url": "^2.0.1",
     "ember-template-lint": "^2.4.0",
     "ember-try": "^1.4.0",

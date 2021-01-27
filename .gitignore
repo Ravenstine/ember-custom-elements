@@ -8,6 +8,7 @@
 /bower_components/
 /node_modules/
 /template-compiler/
+/tests/dummy-add-on/node_modules/
 
 # misc
 /.env*

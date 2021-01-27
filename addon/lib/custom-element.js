@@ -130,12 +130,12 @@ function updateComponentArgs() {
     const view = COMPONENT_VIEWS.get(this);
     if (!view) return;
     const options = getOptions(this);
-    const attrs = { ...view.attrs };
-    set(view, 'attrs', attrs);
+    const attrs = { ...view._attrs };
+    set(view, '_attrs', attrs);
     for (const attr of changes) {
       const attrName = options.camelizeArgs ? camelize(attr) : attr;
       attrs[attrName] = this.getAttribute(attr);
-      notifyPropertyChange(view, `attrs.${attrName}`);
+      notifyPropertyChange(view, `_attrs.${attrName}`);
     }
   } finally {
     set(this, '_attributeObserverEnabled', true);
@@ -194,7 +194,7 @@ async function connectComponent() {
   const owner = getOwner(this);
   const view = owner.factoryFor('component:-ember-web-component-view').create({
     layout: compileTemplate(this.parsedName.name, Object.keys(attrs)),
-    attrs,
+    _attrs: attrs,
     blockContent: null
   });
   COMPONENT_VIEWS.set(this, view);

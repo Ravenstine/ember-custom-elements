@@ -72,7 +72,14 @@ export default class EmberWebOutlet extends HTMLElement {
     } else {
       routeName = this.route;
     }
-    const outletState = lookupOutlet(router._toplevelView.ref.outletState, routeName, this.outlet) || {};
+    const stateObj = (() => {
+      if (typeof router._toplevelView.ref.compute === 'function') {
+        return router._toplevelView.ref.compute();
+      } else {
+        return router._toplevelView.ref.outletState
+      }
+    })();
+    const outletState = lookupOutlet(stateObj, routeName, this.outlet) || {};
     const view = OUTLET_VIEWS.get(this);
     view.setOutletState(outletState);
   }

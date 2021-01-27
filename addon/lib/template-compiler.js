@@ -34,9 +34,10 @@ const BREAK = Symbol('break');
  * @param {Array<String>} attributeNames - A list of element attribute names.
  */
 export function compileTemplate(componentName, attributeNames=[]) {
-  const template = JSON.parse(JSON.stringify(BASE_TEMPLATE));
+  const template = clone(BASE_TEMPLATE);
   const block = JSON.parse(template.block);
-  const statement = block.statements[0];
+  const statement = block.statements ? block.statements[0] : block;
+  if (Array.isArray(block.symbols)) block.symbols = [];
   // Replace the placeholder component name with the actual one.
   crawl(statement, ({ object }) => {
     if (object === 'component-name') return componentName;
@@ -45,8 +46,7 @@ export function compileTemplate(componentName, attributeNames=[]) {
   let argumentIdentifiers;
   // Identify the argument names array
   crawl(statement, ({ object, next }) => {
-    if (!object || object[0] !== '@attributeName') return;
-    object.pop();
+    if (!object || object[0] !== '@argName') return;
     argumentNames = object;
     argumentIdentifiers = next;
     return BREAK;
@@ -57,25 +57,33 @@ export function compileTemplate(componentName, attributeNames=[]) {
   const baseValue = argumentIdentifiers[0];
   argumentIdentifiers.length = 0;
   // https://github.com/glimmerjs/glimmer-vm/blob/319f3e391c547544129e4dab0746b059b665880e/packages/%40glimmer/compiler/lib/allocate-symbols.ts#L113
-  function pushArg(name, identifier) {
+  function pushArg(name) {
     argumentNames.push(`@${name}`);
     // https://github.com/glimmerjs/glimmer-vm/blob/319f3e391c547544129e4dab0746b059b665880e/packages/%40glimmer/compiler/lib/allocate-symbols.ts#L130
-    const value = JSON.parse(JSON.stringify(baseValue));
+    const value = clone(baseValue);
     crawl(value, ({ object }) => {
-      if (object === 'valueName') return identifier;
+      if (object !== 'valueName') return;
+      return name;
     });
     argumentIdentifiers.push(value);
   }
   // Set args
-  for (const name of attributeNames)
-    pushArg(name, `attrs.${name}`);
+  for (const name of attributeNames) pushArg(name);
   // Return a template factory
   template.id = componentName;
   template.block = JSON.stringify(block);
   return createTemplateFactory(template);
 }
 
-
+/**
+ * "clones" an object.
+ * Obviously only supports JSON-compatible types
+ * but that's fine for the purposes of this lib.
+ * @param {*} obj 
+ */
+function clone(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
 
 /**
  * Given an object and a callback, will crawl the object

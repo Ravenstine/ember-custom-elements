@@ -5,7 +5,9 @@
   ],
   "dependencies": {
     "ember-cli-babel": "^7.18.0",
-    "ember-cli-htmlbars": "^4.2.3",
-    "ember-custom-elements": "file:../../"
+    "ember-cli-htmlbars": "^5.3.1"
+  },
+  "peerDependencies": {
+    "ember-custom-elements": "*"
   }
 }

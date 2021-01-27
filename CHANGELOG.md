@@ -1,6 +1,10 @@
 Ember Web Components Changelog
 ==============================
 
+## v2.0.4
+
+- Fix rendering failure for Ember >= 3.20.0
+
 ## v2.0.3
 
 - Fix support for use of the decorator within add-ons

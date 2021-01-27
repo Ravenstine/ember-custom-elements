@@ -29,7 +29,7 @@ module('Unit | Utility | template-compiler', function(hooks) {
     const template = compileTemplate('dummy-component', ['items']);
     this.blockContent = 'foo';
     // eslint-disable-next-line ember/no-attrs-in-components
-    this.attrs = {
+    this._attrs = {
       items: [
         'bar',
         'baz',
