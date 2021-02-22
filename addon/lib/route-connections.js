@@ -5,7 +5,7 @@ import Ember from 'ember';
  * private value in the Ember internals which allows us to consistently
  * map route instances to outlet states.  Otherwise, there isn't a way
  * to identify whether an outlet state matches a route other than
- * matching by template name, which may be totall different from the
+ * matching by template name, which may be totally different from the
  * route name if the route is rendering different templates into
  * named routes.
  * 
