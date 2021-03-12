@@ -1,6 +1,7 @@
 import Application from '@ember/application';
 import Route from '@ember/routing/route';
 import EmberComponent from '@ember/component';
+import { guidFor } from '@ember/object/internals';
 import { isGlimmerComponent } from './glimmer-compat';
 
 const EMBER_WEB_COMPONENTS_CUSTOM_ELEMENTS = Symbol('EMBER_WEB_COMPONENTS_CUSTOM_ELEMENTS');
@@ -31,13 +32,17 @@ export function getCustomElements(targetClass) {
 }
 
 /**
- * Returns an Ember class associated with an element.
+ * Returns a target class associated with an element class or instance.
  *
- * @param {Class} getTargetClass
+ * @param {*} getTargetClass
  * @private
  */
 export function getTargetClass(customElement) {
-  return customElement[EMBER_WEB_COMPONENTS_TARGET_CLASS];
+  if (!customElement) return;
+  return (
+    customElement[EMBER_WEB_COMPONENTS_TARGET_CLASS] ||
+    (customElement.constructor && customElement.constructor[EMBER_WEB_COMPONENTS_TARGET_CLASS])
+  );
 }
 
 /**
@@ -49,7 +54,8 @@ export function isSupportedClass(targetClass) {
   return isApp(targetClass) ||
          isRoute(targetClass) ||
          isComponent(targetClass) ||
-         isGlimmerComponent(targetClass);
+         isGlimmerComponent(targetClass) ||
+         isNativeElement(targetClass);
 }
 
 /**
@@ -83,6 +89,28 @@ export function isRoute(targetClass) {
  */
 export function isComponent(targetClass) {
   return isAncestorOf(targetClass, EmberComponent);
+}
+
+/**
+ * Indicates whether an object is an HTMLElement
+ * 
+ * @param {Class} targetClass
+ * @private
+ * @returns {Boolean}
+ */
+export function isNativeElement(targetClass) {
+  return isAncestorOf(targetClass, HTMLElement);
+}
+
+/**
+ * 
+ * @param {Class} targetClass
+ * @private
+ * @returns {String}
+ */
+export function internalTagNameFor(targetClass) {
+  const guid = guidFor(targetClass);
+  return `internal-element-${guid}`;
 }
 
 function isAncestorOf(a, b) {

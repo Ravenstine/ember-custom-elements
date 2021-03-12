@@ -23,7 +23,7 @@ export function initialize(instance) {
 
   // Get a list of all registered components, find the ones that use the customElement
   // decorator, and set the app instance and component name on them.
-  for (const type of ['application', 'component', 'route']) {
+  for (const type of ['application', 'component', 'route', 'custom-element']) {
     const entityNames = instance.__registry__.fallback.resolver.knownForType(type);
     for (const entityName in entityNames) {
       const parsedName = instance.__registry__.fallback.resolver.parseName(entityName);

@@ -1,6 +1,10 @@
 Ember Web Components Changelog
 ==============================
 
+## v2.1.0
+
+- Add support for unwrapped dynamic block content, removing the requirement to place dynamic block content within another element
+
 ## v2.0.4
 
 - Fix rendering failure for Ember >= 3.20.0

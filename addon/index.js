@@ -10,7 +10,9 @@ import {
   getTargetClass,
   isSupportedClass,
   isComponent,
-  isApp
+  isApp,
+  isNativeElement,
+  internalTagNameFor
 } from './lib/common';
 import { isGlimmerComponent } from './lib/glimmer-compat';
 import { setOwner } from '@ember/application';
@@ -101,6 +103,12 @@ export function customElement() {
           }
         }
       `))(targetClass, constructInstanceForCustomElement);
+    }
+
+    if (isNativeElement(decoratedClass)) {
+      const internalTagName = internalTagNameFor(decoratedClass);
+      const existingElement = window.customElements.get(internalTagName);
+      if (!existingElement) window.customElements.define(internalTagName, decoratedClass);
     }
 
     try {

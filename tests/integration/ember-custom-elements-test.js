@@ -14,6 +14,7 @@ import {
   setupRouteForTest,
   setupRouteTest,
   setupApplicationForTest,
+  setupNativeElementForTest,
   setupTestRouter
 } from '../helpers/ember-custom-elements';
 import hbs from 'htmlbars-inline-precompile';
@@ -43,6 +44,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         setupComponentForTest(this.owner, EmberCustomElement, template, 'web-component');
 
         await render(hbs`<web-component></web-component>`);
+        await settled();
         const element = find('web-component');
         assert.equal(element.textContent.trim(), 'foo bar');
       });
@@ -593,6 +595,44 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       await settled();
       const element = find('foo-route');
       assert.ok(element.querySelector('[data-test-foo]'), 'it preserves DOM contents');
+    });
+  });
+
+  module('native custom elements', function (hooks) {
+    test('it renders a native custom element', async function (assert) {
+      @customElement('web-component')
+      class NativeCustomElement extends HTMLElement {
+        connectedCallback() {
+          this.insertAdjacentHTML('beforeend', '<h2>I am a native custom element</h2>');
+        }
+      }
+      setupNativeElementForTest(this.owner, NativeCustomElement);
+      await render(hbs`<web-component></web-component>`);
+      await settled();
+      const element = find('web-component');
+      assert.equal(element.textContent.trim(), 'I am a native custom element');
+    });
+
+    test('it handles dynamic block content', async function (assert) {
+      @customElement('web-component')
+      class NativeCustomElement extends HTMLElement {
+        connectedCallback() {
+          this.insertAdjacentText('afterbegin', 'I\'m ');
+          this.insertAdjacentText('beforeend', 'short and stout');
+        }
+      }
+      setupNativeElementForTest(this.owner, NativeCustomElement);
+      set(this, 'show', true);
+      await render(hbs`<web-component>{{#if this.show}}a little teapot {{/if}}</web-component>`);
+      await settled();
+      const element = find('web-component');
+      assert.equal(element.textContent.trim(), 'I\'m a little teapot short and stout');
+      set(this, 'show', false);
+      await settled();
+      assert.equal(element.textContent.trim(), 'I\'m short and stout');
+      set(this, 'show', true);
+      await settled();
+      assert.equal(element.textContent.trim(), 'I\'m a little teapot short and stout');
     });
   });
 

@@ -20,81 +20,68 @@ import { scheduleOnce } from '@ember/runloop';
  * @private
  */
 export default class BlockContent {
-  static from(nodes) {
-    return new this(nodes);
-  }
-
-  constructor(nodes) {
-    this.captureAfterRender = this.captureAfterRender.bind(this);
-    this._isTracking = true;
-    this.startBoundary = document.createComment(' ');
-    this.endBoundary = document.createComment(' ');
-    const childNodes = Array.from(nodes);
-    const fragment = new DocumentFragment();
-    fragment.append(this.startBoundary);
-    const blockContent = childNodes.reduce((fragment, node) => {
-      fragment.append(node);
-      return fragment;
-    }, fragment);
-    blockContent.append(this.endBoundary);
-    this.populateCache();
-  }
-
-  populateCache() {
-    const nodes = [];
-    let current = this.startBoundary.nextSibling;
-    while (current !== this.endBoundary) {
-      if (current === this.endBoundary) break;
-      nodes.push(current);
-      current = current.nextSibling;
-    }
-    this._blockContentCache = nodes;
-  }
-
-  toFragment() {
-    const fragment = new DocumentFragment();
-    fragment.append(this.startBoundary);
-    const blockContent = this._blockContentCache.reduce((fragment, node) => {
-      fragment.append(node);
-      return fragment;
-    }, fragment);
-    blockContent.append(this.endBoundary);
-    return fragment;
-  }
-
-  track() {
-    // Capture initially on this tick
-    this.captureAfterRender();
+  constructor() {
+    this.startBoundary = document.createComment(' start ');
+    this.endBoundary = document.createComment(' end ');
+    this.fragment = document.createDocumentFragment();
+    this.fragment.append(this.startBoundary);
+    this.fragment.append(this.endBoundary);
+    const cache = [];
     // eslint-disable-next-line ember/new-module-imports
-    Ember.run.backburner.on('begin', this.captureAfterRender);
+    Ember.run.backburner.on('begin', () => {
+      // eslint-disable-next-line ember/no-incorrect-calls-with-inline-anonymous-functions
+      scheduleOnce('actions', this, () => {
+        if (this.startBoundary.isConnected) {
+          cache.length = 0;
+          let currentNode = this.startBoundary;
+          while (currentNode) {
+            if (!currentNode) return;
+            cache.push(currentNode);
+            if (currentNode === this.endBoundary) break;
+            currentNode = currentNode.nextSibling;
+          }
+        } else {
+          // eslint-disable-next-line ember/no-incorrect-calls-with-inline-anonymous-functions
+          scheduleOnce('afterRender', this, () => {
+            for (const node of cache) {
+              this.fragment.append(node);
+            }
+            cache.length = 0;
+          });
+        }
+      });
+    });
   }
 
-  captureAfterRender() {
-    scheduleOnce('actions', this, this.capture);
+  from(nodes) {
+    for (const node of Array.from(nodes)) this.append(node);
   }
 
-  capture() {
-    if (!this._isTracking) return;
-    if (this.startBoundary.isConnected) {
-      this.populateCache();
-    } else {
-      const fragment = this.toFragment();
-      this.onTracked(fragment);
+  insertBefore(child) {
+    this.endBoundary.parentNode.insertBefore(child, this.endBoundary);
+  }
+
+  removeChild(child) {
+    let currentNode = this.startBoundary;
+    while (currentNode) {
+      if (!currentNode || currentNode === this.endBoundary) return;
+      if (
+        currentNode !== this.startBoundary &&
+        currentNode !== this.endBoundary &&
+        currentNode === child
+      ) {
+        child.remove();
+        return
+      }
+      currentNode = currentNode.nextSibling;
     }
   }
 
-  /**
-   * @method onTracked
-   * @returns {DocumentFragment|Null}
-   */
-  onTracked() {
-    // override this
-    return null;
+  append(node) {
+    this.insertBefore(node);
   }
 
-  destroy() {
-    this._isTracking = false;
-    // eslint-disable-next-line ember/new-module-imports
-    Ember.run.backburner.off('begin', this.captureAfterRender);
+  appendTo(node) {
+    node.append(this.fragment);
   }
 }

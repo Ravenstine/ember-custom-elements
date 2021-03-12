@@ -2,6 +2,7 @@
 import Ember from 'ember';
 import Router from '@ember/routing/router';
 import { setupCustomElementFor } from 'ember-custom-elements';
+import { guidFor } from '@ember/object/internals';
 
 export function setupComponentForTest(owner, componentClass, template, registrationName) {
   owner.register(`component:${registrationName}`, componentClass);
@@ -36,6 +37,23 @@ export function setupRouteForTest(owner, routeClass, registrationName) {
     // noop
   }
   owner.register(fullName, routeClass);
+  setupCustomElementFor(owner, fullName);
+}
+
+function internalTagNameFor(targetClass) {
+  const guid = guidFor(targetClass);
+  return `internal-element-${guid}`;
+}
+
+export function setupNativeElementForTest(owner, elementClass) {
+  const tagName = internalTagNameFor(elementClass);
+  const fullName = `custom-element:${tagName}`;
+  try {
+    owner.unregister(fullName);
+  } catch (_) {
+    // noop
+  }
+  owner.register(fullName, elementClass);
   setupCustomElementFor(owner, fullName);
 }
 
