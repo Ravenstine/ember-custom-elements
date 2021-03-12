@@ -4,7 +4,7 @@ import { getOwner, setOwner } from '@ember/application';
 import { camelize } from '@ember/string';
 import { getInitializationPromise } from '../instance-initializers/ember-custom-elements';
 import { compileTemplate } from './template-compiler';
-import OutletElement, { OUTLET_VIEWS } from './outlet-element';
+import OutletElement, { getPreserveOutletContent, OUTLET_VIEWS } from './outlet-element';
 import BlockContent from './block-content';
 import { getTargetClass, internalTagNameFor } from './common';
 
@@ -32,45 +32,6 @@ export default class EmberCustomElement extends HTMLElement {
    * this uses a symbol instead.
    */
   [BLOCK_CONTENT] = new BlockContent();
-
-  /**
-   * If the referenced class is a route, returns the name of the route.
-   *
-   * @returns {String|null}
-   */
-  get route() {
-    const { type, fullNameWithoutType } = this.parsedName;
-    if (type === 'route') {
-      return fullNameWithoutType.replace('/', '.');
-    } else if (type === 'application') {
-      return 'application';
-    } else {
-      return null;
-    }
-  }
-  /**
-   * If the referenced class is a route, returns the name of a specified outlet.
-   *
-   * @returns {String|null}
-   */
-  get outlet() {
-    const options = getOptions(this);
-    return options.outletName || 'main';
-  }
-  /**
-   * If the referenced class is a route, and this is set to `true`, the DOM tree
-   * inside the element will not be cleared when the route is transitioned away
-   * until the element itself is destroyed.
-   *
-   * This only applies to routes.  No behavior changes when applied to components
-   * or applications.
-   *
-   * @returns {Boolean=false}
-   */
-  get preserveOutletContent() {
-    const options = getOptions(this);
-    return options.preserveOutletContent;
-  }
 
   /**
    * Sets up the component instance on element insertion and creates an
@@ -125,7 +86,7 @@ export default class EmberCustomElement extends HTMLElement {
     const outletView = OUTLET_VIEWS.get(this);
     if (outletView) await OutletElement.prototype.destroyOutlet.call(this);
     const { type } = this.parsedName;
-    if (type === 'route' && !this.preserveOutletContent) this.innerHTML = '';
+    if (type === 'route' && !getPreserveOutletContent(this)) this.innerHTML = '';
   }
 
   removeChild() {
@@ -245,6 +206,7 @@ async function connectComponent() {
   target.append(proxy);
   set(view, 'blockContent', this[BLOCK_CONTENT].fragment);
 }
+
 /**
  * Sets up a route to be rendered in the element
  * @private
@@ -319,7 +281,7 @@ async function connectNativeElement() {
   target.append(element);
 }
 
-function getOptions(element) {
+export function getOptions(element) {
   const customElementOptions = CUSTOM_ELEMENT_OPTIONS.get(element.constructor);
   const ENV = getOwner(element).resolveRegistration('config:environment') || {};
   const { defaultOptions = {} } = ENV.emberCustomElements || {};
