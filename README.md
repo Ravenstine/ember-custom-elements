@@ -129,7 +129,7 @@ When the component is rendered, we get this:
 <span>foo bar baz</span>
 ```
 
-Block content can be dynamic.  However, if you will be inserting/removing elements or changing their properties, as opposed ot merely changing text values, you will have to wrap your block content in a static DIV element to prevent the Ember renderer from getting confused by the presence of a different parent and siblings.  It's a goal of this project to find a way to support dynamic elements in block content without requiring a wrapper.
+Block content can be dynamic.  However, the consuming element needs to be able to handle its children being changed by other forces outside of it; if a child that's dynamic gets removed by the custom element itself, that can lead to the renderer getting confused and spitting out errors during runtime.
 
 You can see dynamic block content can work in [this demo](https://ember-twiddle.com/f99d7cb679baf906c3d6b1435e52fdf9).
 
