@@ -26,6 +26,7 @@ The most flexible way to render parts of your Ember application using custom ele
     * [Named Outlets](#named-outlets)
     * [Outlet Element](#outlet-element)
   * [Applications](#applications)
+  * [Native Custom Elements](#native-custom-elements)
   * [Options](#options)
   * [Accessing a Custom Element](#accessing-a-custom-element)
   * [Forwarding Component Properties](#forwarding-component-properties)
@@ -279,6 +280,22 @@ loadInitializers(App, config.modulePrefix);
 ```
 
 Once your app has been created, every creation of a custom element for it will only create new application instances, meaning that your instance-initializers will run again but your initializers won't perform again.  Custom elements for your app are tied directly to your existing app.
+
+
+
+### Native Custom Elements
+
+The `customElement` decorator can also be used on native custom elements(i.e. extensions of `HTMLElement`).
+
+```javascript
+/* app/elements/my-element.js */
+import { customElement } from 'ember-custom-elements';
+
+@customElement('my-element')
+export default class MyElement extends HTMLElement {
+
+}
+```
 
 
 
