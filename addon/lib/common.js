@@ -3,6 +3,7 @@ import Route from '@ember/routing/route';
 import EmberComponent from '@ember/component';
 import { guidFor } from '@ember/object/internals';
 import { isGlimmerComponent } from './glimmer-compat';
+import { TARGET_AVAILABLE } from './custom-element';
 
 const EMBER_WEB_COMPONENTS_CUSTOM_ELEMENTS = Symbol('EMBER_WEB_COMPONENTS_CUSTOM_ELEMENTS');
 const EMBER_WEB_COMPONENTS_TARGET_CLASS = Symbol('EMBER_WEB_COMPONENTS_TARGET_CLASS');
@@ -18,6 +19,8 @@ export function addCustomElement(targetClass, customElement) {
   targetClass[EMBER_WEB_COMPONENTS_CUSTOM_ELEMENTS] = targetClass[EMBER_WEB_COMPONENTS_CUSTOM_ELEMENTS] || new Set();
   targetClass[EMBER_WEB_COMPONENTS_CUSTOM_ELEMENTS].add(customElement);
   customElement[EMBER_WEB_COMPONENTS_TARGET_CLASS] = targetClass;
+  const deference = customElement[TARGET_AVAILABLE];
+  if (deference) deference.resolve();
 }
 
 /**

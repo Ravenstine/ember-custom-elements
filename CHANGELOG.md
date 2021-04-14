@@ -6,6 +6,7 @@ Ember Web Components Changelog
 - Add support for unwrapped dynamic block content, removing the requirement to place dynamic block content within another element
 - Add support for using the `@customElement` decorator on descendent of HTMLElement
 - Make non-standard custom element properties private
+- Fix serious bug with non-owned apps failing to render
 
 ## v2.0.4
 

@@ -263,6 +263,7 @@ export default class App extends Application {
   podModulePrefix = config.podModulePrefix;
   Resolver = Resolver;
   autoboot = false;
+  // 👆 this part is important
 }
 
 loadInitializers(App, config.modulePrefix);

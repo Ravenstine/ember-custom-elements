@@ -6,17 +6,21 @@ import { getInitializationPromise } from '../instance-initializers/ember-custom-
 import { compileTemplate } from './template-compiler';
 import OutletElement, { getPreserveOutletContent, OUTLET_VIEWS } from './outlet-element';
 import BlockContent from './block-content';
-import { getMeta } from '../index';
-
-export const CURRENT_CUSTOM_ELEMENT = { element: null };
-export const CUSTOM_ELEMENT_OPTIONS = new WeakMap();
-export const INITIALIZERS = new WeakMap();
+import { getMeta, setMeta } from '../index';
+import { getTargetClass, isApp } from './common';
+import { defer } from 'rsvp';
+import { destroy } from './ember-compat';
 
 const APPS = new WeakMap();
 const APP_INSTANCES = new WeakMap();
 const COMPONENT_VIEWS = new WeakMap();
 const ATTRIBUTES_OBSERVERS = new WeakMap();
 const BLOCK_CONTENT = Symbol('BLOCK_CONTENT');
+
+export const CURRENT_CUSTOM_ELEMENT = { element: null };
+export const CUSTOM_ELEMENT_OPTIONS = new WeakMap();
+export const INITIALIZERS = new WeakMap();
+export const TARGET_AVAILABLE = Symbol('TARGET_AVAILABLE');
 
 /**
  * The custom element that wraps an actual Ember component.
@@ -25,6 +29,8 @@ const BLOCK_CONTENT = Symbol('BLOCK_CONTENT');
  * @extends HTMLElement
  */
 export default class EmberCustomElement extends HTMLElement {
+  static [TARGET_AVAILABLE] = defer();
+
   /**
    * Private properties don't appear to be accessible in
    * functions that we bind to the instance, which is why
@@ -34,6 +40,7 @@ export default class EmberCustomElement extends HTMLElement {
 
   constructor() {
     super(...arguments);
+    
     initialize(this);
   }
 
@@ -50,12 +57,23 @@ export default class EmberCustomElement extends HTMLElement {
     // https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements
     if (!this.isConnected) return;
 
+    // If the related Ember app code has not been evaluated by
+    // the browser yet, wait for the target class to be decorated
+    // and associated with the custom element class before continuing.
+    await this.constructor[TARGET_AVAILABLE].promise;
+
+    let targetClass = getTargetClass(this);
+
+    // Apps may have an owner they're registered to, but that is
+    // not the expectation most of the time, so we have to
+    // detect that and handle it differently.
+    if (isApp(targetClass)) return connectApplication.call(this);
+
     await getInitializationPromise();
 
     const { type } = getMeta(this).parsedName;
     if (type === 'component') return connectComponent.call(this);
     if (type === 'route') return connectRoute.call(this);
-    if (type === 'application') return connectApplication.call(this);
   }
 
   /**
@@ -74,11 +92,13 @@ export default class EmberCustomElement extends HTMLElement {
    */
   async disconnectedCallback() {
     const app = APPS.get(this);
-    if (app) await app.destroy();
+    if (app) await destroy(app);
+    // ☝️ Calling that seems to cause a rendering error
+    // in tests that is difficult to address.
     const instance = APP_INSTANCES.get(this);
-    if (instance) await instance.destroy();
+    if (instance) await destroy(instance);
     const componentView = COMPONENT_VIEWS.get(this);
-    if (componentView) await componentView.destroy();
+    if (componentView) await destroy(componentView);
     const attributesObserver = ATTRIBUTES_OBSERVERS.get(this);
     if (attributesObserver) attributesObserver.disconnect();
     const outletView = OUTLET_VIEWS.get(this);
@@ -212,9 +232,7 @@ async function connectComponent() {
 async function connectRoute() {
   const options = getOptions(this);
   const useShadowRoot = options.useShadowRoot;
-  if (useShadowRoot) {
-    this.attachShadow({ mode: 'open' });
-  }
+  if (useShadowRoot) this.attachShadow({ mode: 'open' });
   CURRENT_CUSTOM_ELEMENT.element = this;
   OutletElement.prototype.connectedCallback.call(this);
 }
@@ -240,7 +258,20 @@ async function connectApplication() {
   const rootElement = document.createElement('div');
   parentElement.append(rootElement);
   CURRENT_CUSTOM_ELEMENT.element = this;
-  const app = getOwner(this).factoryFor(getMeta(this).parsedName.fullName).create({});
+  const owner = getOwner(this);
+  let app;
+  // If the app is owned, use a factory to instantiate
+  // the app instead of using the constructor directly.
+  const config = {
+    rootElement,
+    autoboot: false,
+  };
+  if (owner) {
+    app = owner.factoryFor(getMeta(this).parsedName.fullName).create(config);
+  } else {
+    const App = getTargetClass(this);
+    app = App.create(config);
+  }
   APPS.set(this, app);
   await app.boot();
   const instance = app.buildInstance();
@@ -248,6 +279,13 @@ async function connectApplication() {
   await instance.boot({ rootElement });
   await instance.startRouting();
   setOwner(this, instance);
+  if (!owner) {
+    await getInitializationPromise();
+    // The outlet-element methods expect the element
+    // to have resolver meta data associated with it.
+    const meta = instance.__registry__.fallback.resolver.parseName('application:main');
+    setMeta(this, meta);
+  }
   connectRoute.call(this);
 }
 

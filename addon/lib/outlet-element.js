@@ -3,6 +3,7 @@ import { scheduleOnce } from '@ember/runloop';
 import { getOptions } from './custom-element';
 import ROUTE_CONNECTIONS from './route-connections';
 import { getMeta } from '../index';
+import { destroy } from './ember-compat';
 
 export const OUTLET_VIEWS = new WeakMap();
 
@@ -80,7 +81,7 @@ export default class EmberWebOutlet extends HTMLElement {
 
   async destroyOutlet() {
     const view = OUTLET_VIEWS.get(this);
-    if (view) await view.destroy();
+    if (view) await destroy(view);
     const target = this.shadowRoot || this;
     if (this.preserveOutletContent !== 'true') target.innerHTML = '';
   }

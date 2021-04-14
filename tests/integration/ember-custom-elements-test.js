@@ -1,10 +1,11 @@
 /* eslint-disable no-unused-vars */
 import Ember from 'ember';
 import { module, skip, test, } from 'qunit';
-import { setupRenderingTest } from 'ember-qunit';
+import { setupTest, setupRenderingTest } from 'ember-qunit';
 import { set } from '@ember/object';
 import { later, scheduleOnce } from '@ember/runloop';
 import { find,
+         findAll,
          render,
          waitUntil,
          settled
@@ -26,6 +27,7 @@ import { customElement, forwarded, getCustomElement } from 'ember-custom-element
 import { tracked } from '@glimmer/tracking';
 import Service, { inject as service } from '@ember/service';
 import { getOwner } from '@ember/application';
+import { registerDestructor } from 'ember-custom-elements/lib/ember-compat';
 
 module('Integration | Component | ember-custom-elements', function (hooks) {
   setupRenderingTest(hooks);
@@ -36,7 +38,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
   ];
 
   for (const { name, klass } of components) {
-    module(name, function() {
+    module(name, function () {
       test('it renders', async function (assert) {
         @customElement('web-component')
         class EmberCustomElement extends klass {}
@@ -345,33 +347,93 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
     });
   }
 
-  module('ember application', function() {
-    test('it renders', async function (assert) {
-      @customElement('web-component')
-      class EmberWebApplication extends DummyApplication {
-        autoboot = false;
-      }
-      setupApplicationForTest(this.owner, EmberWebApplication, 'ember-web-application');
-      await render(hbs`<web-component></web-component>`);
-      const element = find('web-component');
-      await settled();
-      assert.equal(element.textContent.trim(), 'Welcome to Ember');
-    });
+  module('ember application', function () {    
+    const performTest = (isOwned) => {
+      module(isOwned ? 'owned' : 'standalone', function () {
+        test('it renders', async function (assert) {
+          @customElement('web-component')
+          class EmberWebApplication extends DummyApplication {
+            autoboot = false;
+          }
+          if (isOwned) {
+            setupApplicationForTest(this.owner, EmberWebApplication, 'ember-web-application');
+          }
+          await render(hbs`<web-component></web-component>`);
+          const element = find('web-component');
+          await settled();
+          assert.equal(element.textContent.trim(), 'Welcome to Ember');
+        });
 
-    test('it can access the custom element', async function (assert) {
-      assert.expect(1);
-      @customElement('web-component')
-      class EmberWebApplication extends DummyApplication {
-        autoboot = false;
-        constructor() {
-          super(...arguments);
-          const element = getCustomElement(this);
-          assert.equal(element.tagName, 'WEB-COMPONENT', 'found the custom element');
-        }
-      }
-      setupApplicationForTest(this.owner, EmberWebApplication, 'ember-web-application');
-      render(hbs`<web-component></web-component>`);
-    });
+        test('it can appear multiple times in the DOM', async function (assert) {
+          assert.expect(3);
+
+          @customElement('web-component')
+          class EmberWebApplication extends DummyApplication {
+            autoboot = false;
+          }
+          if (isOwned) {
+            setupApplicationForTest(this.owner, EmberWebApplication, 'ember-web-application');
+          }
+          await render(hbs`
+            <web-component></web-component>
+            <web-component></web-component>
+            <web-component></web-component>
+          `);
+          await settled();
+          const elements = findAll('web-component');
+          for (const element of elements) {
+            assert.equal(element.textContent.trim(), 'Welcome to Ember'); 
+          }
+        });
+    
+        test('it can access the custom element', async function (assert) {
+          assert.expect(1);
+          @customElement('web-component')
+          class EmberWebApplication extends DummyApplication {
+            autoboot = false;
+            
+            constructor() {
+              super(...arguments);
+              const element = getCustomElement(this);
+              assert.equal(element.tagName, 'WEB-COMPONENT', 'found the custom element');
+            }
+          }
+          if (isOwned) {
+            setupApplicationForTest(this.owner, EmberWebApplication, 'ember-web-application');
+          }
+          render(hbs`<web-component></web-component>`);
+        });
+
+        test('it gets destroyed when the element gets removed', async function (assert) {
+          assert.expect(2);
+          @customElement('web-component')
+          class EmberWebApplication extends DummyApplication {
+            autoboot = false;
+
+            constructor() {
+              super(...arguments);
+
+              registerDestructor(this, () => {
+                assert.step('did destroy');
+              });
+            }
+          }
+          if (isOwned) {
+            setupApplicationForTest(this.owner, EmberWebApplication, 'ember-web-application');
+          }
+          await render(hbs``);
+          this.element.insertAdjacentHTML('afterbegin', '<web-component></web-component>');
+          const element = find('web-component');
+          await settled();
+          element.remove();
+          await settled();
+          assert.verifySteps(['did destroy']);
+        });
+      });
+    }
+
+    performTest(true);
+    performTest(false);
   });
 
   module('ember routes', function (hooks) {
@@ -387,7 +449,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
       this.owner.register('template:application', hbs`<web-component></web-component>`);
       this.owner.register('template:test-route', hbs`<h2 data-test-heading>Hello World</h2>`);
 
-      setupTestRouter(this.owner, function() {
+      setupTestRouter(this.owner, function () {
         this.route('test-route', { path: '/' });
       });
 
@@ -407,7 +469,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
       this.owner.register('template:application', hbs`<web-component></web-component>`);
       this.owner.register('template:test-route', hbs`<h2 data-test-heading>Hello World</h2>`);
 
-      setupTestRouter(this.owner, function() {
+      setupTestRouter(this.owner, function () {
         this.route('test-route', { path: '/' });
       });
 
@@ -434,7 +496,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
       this.owner.register('template:test-route', hbs`<h2 data-test-heading>Hello World</h2>`);
       this.owner.register('template:test-route_loading', hbs`<h2 data-test-loading>Loading...</h2>`);
 
-      setupTestRouter(this.owner, function() {
+      setupTestRouter(this.owner, function () {
         this.route('test-route', { path: '/' });
       });
 
@@ -464,7 +526,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
       this.owner.register('template:test-route', hbs`<h2 data-test-heading>Hello World</h2>`);
       this.owner.register('template:test-route_error', hbs`<h2 data-test-error>Whoops!</h2>`);
 
-      setupTestRouter(this.owner, function() {
+      setupTestRouter(this.owner, function () {
         this.route('test-route', { path: '/' });
       });
 
@@ -491,9 +553,9 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
 
       this.owner.register('template:application', hbs`<web-component></web-component>`);
 
-      setupTestRouter(this.owner, function() {
-        this.route('foo', function() {
-          this.route('bar', function() {
+      setupTestRouter(this.owner, function () {
+        this.route('foo', function () {
+          this.route('bar', function () {
             this.route('baz');
           });
         });
@@ -521,8 +583,8 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
 
       this.owner.register('template:application', hbs`<web-component></web-component>`);
 
-      setupTestRouter(this.owner, function() {
-        this.route('foo', { path: '/' }, function() {
+      setupTestRouter(this.owner, function () {
+        this.route('foo', { path: '/' }, function () {
           this.route('bar');
           this.route('baz');
         });
@@ -554,7 +616,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
       this.owner.register('template:foo-route', hbs`<h2 data-test-foo>foo</h2>`);
       this.owner.register('template:bar-route', hbs`<h2 data-test-bar>bar</h2>`);
 
-      setupTestRouter(this.owner, function() {
+      setupTestRouter(this.owner, function () {
         this.route('foo-route', { path: '/foo' });
         this.route('bar-route', { path: '/bar' });
       });
@@ -584,7 +646,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
       this.owner.register('template:foo-route', hbs`<h2 data-test-foo>foo</h2>`);
       this.owner.register('template:bar-route', hbs`<h2 data-test-bar>bar</h2>`);
 
-      setupTestRouter(this.owner, function() {
+      setupTestRouter(this.owner, function () {
         this.route('foo-route', { path: '/foo' });
         this.route('bar-route', { path: '/bar' });
       });
@@ -677,7 +739,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
     });
   });
 
-  module('unsupported', function() {
+  module('unsupported', function () {
     test('it throws an error for unsupported classes', async function (assert) {
       try {
         @customElement('web-component')
@@ -689,7 +751,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
     });
   });
 
-  module('tag name collisions', function() {
+  module('tag name collisions', function () {
     test('it throws an error for a custom element already defined by something else', async function (assert) {
       if (!window.customElements.get('some-other-custom-element')) {
         class SomeOtherCustomElement extends HTMLElement {
@@ -709,7 +771,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
     });
   });
 
-  module('add-ons', function() {
+  module('add-ons', function () {
     // Travis now fails when the dummy-add-on is a dependency
     // so for now we're skipping this since it's less important.
     test('can be used within an add-on', async function (assert) {

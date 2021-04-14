@@ -3,19 +3,15 @@ import EmberCustomElement, {
   CURRENT_CUSTOM_ELEMENT,
   CUSTOM_ELEMENT_OPTIONS,
   INITIALIZERS,
-  initialize
+  initialize,
 } from './lib/custom-element';
 import {
   getCustomElements,
   addCustomElement,
   getTargetClass,
   isSupportedClass,
-  isComponent,
-  isApp,
   isNativeElement,
-  // internalTagNameFor
 } from './lib/common';
-import { isGlimmerComponent } from './lib/glimmer-compat';
 import { setOwner } from '@ember/application';
 import { scheduleOnce } from '@ember/runloop';
 
@@ -82,7 +78,7 @@ export function customElement() {
     customElementOptions
   } = customElementArgs(...arguments);
 
-  const decorate = function(targetClass) {
+  const decorate = function (targetClass) {
     // In case of FastBoot.
     if(!window || !window.customElements) return;
 
@@ -146,6 +142,11 @@ export function customElement() {
 
     // Overwrite the original config on the element
     CUSTOM_ELEMENT_OPTIONS.set(element, customElementOptions);
+
+    // If the element class is being re-used, we should clear
+    // the initializer for it so that we don't accidentally
+    // get a destroyed owner.
+    INITIALIZERS.delete(element);
 
     addCustomElement(decoratedClass, element);
 
@@ -293,7 +294,7 @@ function constructInstanceForCustomElement() {
   }
 }
 
-function setMeta(element, meta) {
+export function setMeta(element, meta) {
   element[ELEMENT_META] = meta;
 }
 
