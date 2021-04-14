@@ -2,7 +2,8 @@
 import EmberCustomElement, {
   CURRENT_CUSTOM_ELEMENT,
   CUSTOM_ELEMENT_OPTIONS,
-  INITIALIZERS
+  INITIALIZERS,
+  initialize
 } from './lib/custom-element';
 import {
   getCustomElements,
@@ -12,10 +13,11 @@ import {
   isComponent,
   isApp,
   isNativeElement,
-  internalTagNameFor
+  // internalTagNameFor
 } from './lib/common';
 import { isGlimmerComponent } from './lib/glimmer-compat';
 import { setOwner } from '@ember/application';
+import { scheduleOnce } from '@ember/runloop';
 
 export { default as EmberOutletElement } from './lib/outlet-element';
 export { default as EmberCustomElement } from './lib/custom-element';
@@ -24,6 +26,7 @@ export const CUSTOM_ELEMENTS = new WeakMap();
 export const INTERFACED_PROPERTY_DESCRIPTORS = new WeakMap();
 
 const RESERVED_PROPERTIES = ['init'];
+const ELEMENT_META = Symbol('ELEMENT_META');
 
 /**
  * A decorator that allows an Ember or Glimmer component to be instantiated
@@ -90,33 +93,49 @@ export function customElement() {
 
     let decoratedClass = targetClass;
 
-    if (isComponent(targetClass) || isGlimmerComponent(targetClass) || isApp(targetClass)) {
-      // This uses a string because that seems to be the one
-      // way to preserve the name of the original class.
-      decoratedClass = (new Function(
-        'targetClass', 'construct',
-        `
-        return class ${targetClass.name} extends targetClass {
-          constructor() {
-            super(...arguments);
-            construct.call(this);
-          }
+    // This uses a string because that seems to be the one
+    // way to preserve the name of the original class.
+    decoratedClass = (new Function(
+      'targetClass', 'construct',
+      `
+      return class ${targetClass.name} extends targetClass {
+        constructor() {
+          super(...arguments);
+          construct.call(this);
         }
-      `))(targetClass, constructInstanceForCustomElement);
-    }
+      }
+    `))(targetClass, constructInstanceForCustomElement);
 
     if (isNativeElement(decoratedClass)) {
-      const internalTagName = internalTagNameFor(decoratedClass);
-      const existingElement = window.customElements.get(internalTagName);
-      if (!existingElement) window.customElements.define(internalTagName, decoratedClass);
+      // This implements a similar fix to the one for the connectedCallback
+      // in `addon/lib/custom-element.js`, which is to wait for the body
+      // content to render (Glimmer inserts child elements individually after
+      // the parent element has been inserted) before calling the
+      // connectedCallback.  This quirk may break 3rd-party custom elements that
+      // expect something to be in the body during the connectedCallback.
+      const connectedCallback = decoratedClass.prototype.connectedCallback;
+      if (connectedCallback) {
+        Object.defineProperty(decoratedClass.prototype, 'connectedCallback', {
+          configurable: true,
+          value() {
+            new Promise(resolve => scheduleOnce('afterRender', this, resolve)).then(() => {
+              return connectedCallback.call(this, ...arguments);
+            });
+          }
+        });
+      }
     }
 
     try {
       // Create a custom HTMLElement for our component.
-      const customElementClass = customElementOptions.customElementClass ||  EmberCustomElement;
+      const customElementClass = isNativeElement(decoratedClass) ? decoratedClass : customElementOptions.customElementClass ||  EmberCustomElement;
       class Component extends customElementClass {}
-      if (customElementOptions.observedAttributes)
-        Component.observedAttributes = Array.from(customElementOptions.observedAttributes);
+      if (customElementOptions.observedAttributes) {
+        Component.observedAttributes = [
+          ...(Component.observedAttributes || []),
+          ...Array.from(customElementOptions.observedAttributes)
+        ].filter(Boolean);
+      }
       window.customElements.define(tagName, Component, { extends: customElementOptions.extends });
       element = Component;
     } catch(err) {
@@ -208,7 +227,7 @@ export function setupCustomElementFor(instance, registrationName) {
   for (const customElement of customElements) {
     const initialize = function() {
       setOwner(this, instance);
-      this.parsedName = parsedName;
+      setMeta(this, { parsedName });
     };
     INITIALIZERS.set(customElement, initialize);
   }
@@ -233,6 +252,10 @@ function customElementArgs() {
 }
 
 function constructInstanceForCustomElement() {
+  if (isNativeElement(this.constructor)) {
+    initialize(this);
+    return;
+  }
   const customElement = CURRENT_CUSTOM_ELEMENT.element;
   // There should always be a custom element when the component is
   // invoked by one, but if a decorated class isn't invoked by a custom
@@ -256,16 +279,24 @@ function constructInstanceForCustomElement() {
     for (const { name, desc } of descriptors) {
       if (typeof desc.value === 'function') {
         customElement[name] = self[name].bind(this);
-      } else {
-        Object.defineProperty(customElement, name, {
-          get() {
-            return self[name];
-          },
-          set(value) {
-            self[name] = value;
-          }
-        });
+        continue;
       }
+      Object.defineProperty(customElement, name, {
+        get() {
+          return self[name];
+        },
+        set(value) {
+          self[name] = value;
+        }
+      });
     }
   }
+}
+
+function setMeta(element, meta) {
+  element[ELEMENT_META] = meta;
+}
+
+export function getMeta(element) {
+  return element[ELEMENT_META];
 }

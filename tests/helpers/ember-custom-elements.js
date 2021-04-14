@@ -45,8 +45,7 @@ function internalTagNameFor(targetClass) {
   return `internal-element-${guid}`;
 }
 
-export function setupNativeElementForTest(owner, elementClass) {
-  const tagName = internalTagNameFor(elementClass);
+export function setupNativeElementForTest(owner, elementClass, tagName) {
   const fullName = `custom-element:${tagName}`;
   try {
     owner.unregister(fullName);

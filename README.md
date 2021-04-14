@@ -201,29 +201,18 @@ This add-on comes with a primitive custom element called `<ember-outlet>` which 
 
 ##### Usage
 
-The outlet element will not be defined by default.  You must do this yourself somewhere in your code.  Here is an example of an instance-initializer you can add to your application that will set up the outlet element:
+The outlet element will not be defined by default.  You must do this with the `@customElement` decorator function.  Here is an example of an instance-initializer you can add to your application that will set up the outlet element:
 
 ```javascript
+// app/custom-elements.js
+
 import { setOwner } from '@ember/application';
-import { EmberOutletElement } from 'ember-custom-elements';
+import { customElement, EmberOutletElement } from 'ember-custom-elements';
 
-const TAG_NAME = 'my-outlet-element';
+@customElement('ember-outlet')
+export default class OutletElement extends EmberOutletElement {
 
-export function initialize(instance) {
-  if (window.customElements.get(TAG_NAME)) {
-    return;
-  }
-  class OutletElement extends EmberOutletElement {
-    initialize() {
-      setOwner(this, instance);
-    }
-  }
-  window.customElements.define(TAG_NAME, OutletElement);
 }
-
-export default {
-  initialize
-};
 ```
 
 This will allow you to render an outlet like this:
@@ -285,10 +274,10 @@ Once your app has been created, every creation of a custom element for it will o
 
 ### Native Custom Elements
 
-The `customElement` decorator can also be used on native custom elements(i.e. extensions of `HTMLElement`).
+The `customElement` decorator can also be used on native custom elements (i.e. extensions of `HTMLElement`).
 
 ```javascript
-/* app/elements/my-element.js */
+/* app/custom-elements/my-element.js */
 import { customElement } from 'ember-custom-elements';
 
 @customElement('my-element')
@@ -296,6 +285,14 @@ export default class MyElement extends HTMLElement {
 
 }
 ```
+
+There's a few minor things that this add-on does for you when it comes to using plain custom elements:
+
+- If you need to access the application from a descendent class of `HTMLElement`, you can use `Ember.getOwner` anywhere in your custom element code.
+- The `connectedCallback` will only be called after Glimmer has had a chance to render the block of content passed to your custom element.  This has to happen because Glimmer inserts elements individually, so even though your custom element may have been connected to the DOM, its prospective children probably haven't been inserted yet.
+- Service injection is possible like with any other Ember class using the `@inject` decorator from `@ember/service`.
+
+It's important that your custom elements are located in a folder named `app/custom-elements` so that they can be properly registered with your application.  This add-on will NOT infer the tagName of the elements from their respective file names; you must always use the `@customElement` decorator.
 
 
 

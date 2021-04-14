@@ -24,8 +24,10 @@ import DummyApplication from 'dummy/app';
 import Route from '@ember/routing/route';
 import { customElement, forwarded, getCustomElement } from 'ember-custom-elements';
 import { tracked } from '@glimmer/tracking';
+import Service, { inject as service } from '@ember/service';
+import { getOwner } from '@ember/application';
 
-module('Integration | Component | ember-custom-elements', function(hooks) {
+module('Integration | Component | ember-custom-elements', function (hooks) {
   setupRenderingTest(hooks);
 
   const components = [
@@ -35,7 +37,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
 
   for (const { name, klass } of components) {
     module(name, function() {
-      test('it renders', async function(assert) {
+      test('it renders', async function (assert) {
         @customElement('web-component')
         class EmberCustomElement extends klass {}
 
@@ -49,7 +51,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         assert.equal(element.textContent.trim(), 'foo bar');
       });
 
-      test('it supports function syntax', async function(assert) {
+      test('it supports function syntax', async function (assert) {
         const EmberCustomElement = customElement(class extends klass {}, 'web-component');
 
         const template = hbs`foo bar`;
@@ -61,7 +63,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         assert.equal(element.textContent.trim(), 'foo bar');
       });
 
-      test('it translates attributes to arguments and updates them', async function(assert) {
+      test('it translates attributes to arguments and updates them', async function (assert) {
         assert.expect(2);
 
         @customElement('web-component')
@@ -82,7 +84,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         assert.equal(element.textContent.trim(), 'baz');
       });
 
-      test('it can translate attributes to camelCase arguments', async function(assert) {
+      test('it can translate attributes to camelCase arguments', async function (assert) {
         assert.expect(2);
 
         @customElement('web-component', { camelizeArgs: true })
@@ -103,7 +105,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         assert.equal(element.textContent.trim(), 'baz');
       });
 
-      test('it only updates arguments defined by observedAttributes', async function(assert) {
+      test('it only updates arguments defined by observedAttributes', async function (assert) {
         assert.expect(4);
 
         @customElement('observed-attributes', { observedAttributes: ['bar'] })
@@ -137,7 +139,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         assert.equal(bar.textContent.trim(), 'qux');
       });
 
-      test('it takes block content', async function(assert) {
+      test('it takes block content', async function (assert) {
         assert.expect(2);
 
         @customElement('web-component')
@@ -157,7 +159,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         assert.equal(element.textContent.trim(), 'foo baz baz')
       });
 
-      test('it supports logic with block content', async function(assert) {
+      test('it supports logic with block content', async function (assert) {
         assert.expect(3);
 
         @customElement('web-component')
@@ -183,7 +185,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         assert.equal(element.textContent.trim(), 'foo baz baz');
       });
 
-      test('it can render with a shadow root', async function(assert) {
+      test('it can render with a shadow root', async function (assert) {
         @customElement('web-component', { useShadowRoot: true })
         class EmberCustomElement extends klass {}
 
@@ -197,7 +199,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         assert.equal(element.shadowRoot.textContent.trim(), 'foo bar');
       });
 
-      test('it can define multiple custom elements', async function(assert) {
+      test('it can define multiple custom elements', async function (assert) {
         // Just adding an options hash here to make sure it doesn't cause an error
         @customElement('foo-component')
         @customElement('bar-component')
@@ -216,7 +218,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         assert.equal(bar.textContent.trim(), 'foo bar');
       });
 
-      test('it can access the custom element in the constructor', async function(assert) {
+      test('it can access the custom element in the constructor', async function (assert) {
         assert.expect(1);
 
         @customElement('web-component', { useShadowRoot: false })
@@ -234,7 +236,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         await settled();
       });
 
-      test('it can access the custom element in another method', async function(assert) {
+      test('it can access the custom element in another method', async function (assert) {
         assert.expect(1);
 
         @customElement('web-component', { useShadowRoot: false })
@@ -255,7 +257,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         await settled();
       });
 
-      test('it can interface with custom element properties', async function(assert) {
+      test('it can interface with custom element properties', async function (assert) {
         @customElement('web-component')
         class EmberCustomElement extends klass {
           @forwarded foo;
@@ -276,7 +278,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
 
       // eslint-disable-next-line ember/new-module-imports
       if (Ember._tracked) {
-        test('it can track interfaced custom element properties', async function(assert) {
+        test('it can track interfaced custom element properties', async function (assert) {
           @customElement('web-component')
           class EmberCustomElement extends klass {
             @forwarded
@@ -299,7 +301,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         });
       }
 
-      test('it forwards methods', async function(assert) {
+      test('it forwards methods', async function (assert) {
         @customElement('web-component')
         class EmberCustomElement extends klass {
           foo = 'foobar';
@@ -318,7 +320,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         assert.equal(element.foobar(), 'FOOBAR', 'calls method on component');
       });
 
-      test('it throws error when applied to static properties', async function(assert) {
+      test('it throws error when applied to static properties', async function (assert) {
         assert.throws(() => {
           @customElement('web-component')
           class EmberCustomElement extends klass {
@@ -328,7 +330,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
         });
       });
 
-      test('it should still render without a custom element', async function(assert) {
+      test('it should still render without a custom element', async function (assert) {
         @customElement('web-component')
         class EmberCustomElement extends klass {}
 
@@ -344,9 +346,8 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
   }
 
   module('ember application', function() {
-    test('it renders', async function(assert) {
+    test('it renders', async function (assert) {
       @customElement('web-component')
-      // eslint-disable-next-line no-unused-vars
       class EmberWebApplication extends DummyApplication {
         autoboot = false;
       }
@@ -357,10 +358,9 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       assert.equal(element.textContent.trim(), 'Welcome to Ember');
     });
 
-    test('it can access the custom element', async function(assert) {
+    test('it can access the custom element', async function (assert) {
       assert.expect(1);
       @customElement('web-component')
-      // eslint-disable-next-line no-unused-vars
       class EmberWebApplication extends DummyApplication {
         autoboot = false;
         constructor() {
@@ -374,10 +374,10 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
     });
   });
 
-  module('ember routes', function(hooks) {
+  module('ember routes', function (hooks) {
     setupRouteTest(hooks);
 
-    test('it renders', async function(assert) {
+    test('it renders', async function (assert) {
       @customElement('web-component')
       class TestRoute extends Route {
 
@@ -397,7 +397,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       assert.equal(element.textContent.trim(), 'Hello World');
     });
 
-    test('it can render with a shadow root', async function(assert) {
+    test('it can render with a shadow root', async function (assert) {
       @customElement('web-component', { useShadowRoot: true })
       class TestRoute extends Route {
 
@@ -417,7 +417,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       assert.equal(element.shadowRoot.textContent.trim(), 'Hello World');
     });
 
-    test('it renders loading substate', async function(assert) {
+    test('it renders loading substate', async function (assert) {
       @customElement('web-component')
       class TestRoute extends Route {
         model() {
@@ -447,7 +447,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       assert.equal(element.textContent.trim(), 'Hello World', 'renders route');
     });
 
-    test('it renders error substate', async function(assert) {
+    test('it renders error substate', async function (assert) {
       @customElement('web-component')
       class TestRoute extends Route {
         model() {
@@ -475,7 +475,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       assert.equal(element.textContent.trim(), 'Whoops!', 'renders error substate');
     });
 
-    test('it renders routes within routes', async function(assert) {
+    test('it renders routes within routes', async function (assert) {
       @customElement('web-component')
       class FooRoute extends Route {}
       setupRouteForTest(this.owner, FooRoute, 'foo');
@@ -505,7 +505,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       assert.equal(element.textContent.trim(), 'foo bar baz', 'renders sub routes');
     });
 
-    test('it transitions between routes', async function(assert) {
+    test('it transitions between routes', async function (assert) {
       @customElement('web-component')
       class FooRoute extends Route {}
       setupRouteForTest(this.owner, FooRoute, 'foo');
@@ -537,7 +537,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       assert.equal(element.textContent.trim(), 'foo baz', 'transitions to second route');
     });
 
-    test('it destroys DOM contents when navigating away', async function(assert) {
+    test('it destroys DOM contents when navigating away', async function (assert) {
       @customElement('foo-route')
       class FooRoute extends Route {
 
@@ -567,7 +567,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       assert.notOk(element.querySelector('[data-test-foo]'), 'it destroys DOM contents');
     });
 
-    test('it can preserve DOM contents when navigating away', async function(assert) {
+    test('it can preserve DOM contents when navigating away', async function (assert) {
       @customElement('foo-route', { preserveOutletContent: true })
       class FooRoute extends Route {
 
@@ -600,32 +600,38 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
 
   module('native custom elements', function (hooks) {
     test('it renders a native custom element', async function (assert) {
-      @customElement('web-component')
+      @customElement('native-component-1')
       class NativeCustomElement extends HTMLElement {
         connectedCallback() {
           this.insertAdjacentHTML('beforeend', '<h2>I am a native custom element</h2>');
         }
       }
-      setupNativeElementForTest(this.owner, NativeCustomElement);
-      await render(hbs`<web-component></web-component>`);
+      setupNativeElementForTest(this.owner, NativeCustomElement, 'native-component-1');
+      await render(hbs`<native-component-1></native-component-1>`);
       await settled();
-      const element = find('web-component');
+      const element = find('native-component-1');
       assert.equal(element.textContent.trim(), 'I am a native custom element');
     });
 
     test('it handles dynamic block content', async function (assert) {
-      @customElement('web-component')
+      @customElement('native-component-2')
       class NativeCustomElement extends HTMLElement {
-        connectedCallback() {
+        async connectedCallback() {
           this.insertAdjacentText('afterbegin', 'I\'m ');
           this.insertAdjacentText('beforeend', 'short and stout');
         }
+        removeChild() {
+          super.removeChild(...arguments);
+        }
+        insertBefore() {
+          super.insertBefore(...arguments);
+        }
       }
-      setupNativeElementForTest(this.owner, NativeCustomElement);
+      setupNativeElementForTest(this.owner, NativeCustomElement, 'native-component-2');
       set(this, 'show', true);
-      await render(hbs`<web-component>{{#if this.show}}a little teapot {{/if}}</web-component>`);
+      await render(hbs`<native-component-2>{{#if this.show}}a little teapot {{/if}}</native-component-2>`);
       await settled();
-      const element = find('web-component');
+      const element = find('native-component-2');
       assert.equal(element.textContent.trim(), 'I\'m a little teapot short and stout');
       set(this, 'show', false);
       await settled();
@@ -634,10 +640,45 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
       await settled();
       assert.equal(element.textContent.trim(), 'I\'m a little teapot short and stout');
     });
+
+    test('it adds an owner', async function (assert) {
+      const owner = this.owner;
+
+      @customElement('native-component-3')
+      class NativeCustomElement extends HTMLElement {
+        connectedCallback() {
+          assert.equal(owner, getOwner(this), 'owner is obtainable');
+        }
+      }
+      setupNativeElementForTest(this.owner, NativeCustomElement, 'native-component-3');
+      await render(hbs`<native-component-3></native-component-3>`);
+    });
+
+    test('it supports service injection', async function (assert) {
+      class DummyService extends Service {
+        message = 'foo';
+      }
+
+      this.owner.register('service:dummy', DummyService);
+
+      @customElement('native-component-4')
+      class NativeCustomElement extends HTMLElement {
+        @service dummy;
+
+        connectedCallback() {
+          this.innerText = this.dummy.message;
+        }
+      }
+      setupNativeElementForTest(this.owner, NativeCustomElement, 'native-component-4');
+      await render(hbs`<native-component-4></native-component-4>`);
+      await settled();
+      const element = find('native-component-4');
+      assert.equal(element.textContent.trim(), 'foo');
+    });
   });
 
   module('unsupported', function() {
-    test('it throws an error for unsupported classes', async function(assert) {
+    test('it throws an error for unsupported classes', async function (assert) {
       try {
         @customElement('web-component')
         // eslint-disable-next-line no-unused-vars
@@ -649,7 +690,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
   });
 
   module('tag name collisions', function() {
-    test('it throws an error for a custom element already defined by something else', async function(assert) {
+    test('it throws an error for a custom element already defined by something else', async function (assert) {
       if (!window.customElements.get('some-other-custom-element')) {
         class SomeOtherCustomElement extends HTMLElement {
           constructor() {
@@ -671,7 +712,7 @@ module('Integration | Component | ember-custom-elements', function(hooks) {
   module('add-ons', function() {
     // Travis now fails when the dummy-add-on is a dependency
     // so for now we're skipping this since it's less important.
-    test('can be used within an add-on', async function(assert) {
+    test('can be used within an add-on', async function (assert) {
       /**
        * See lib/dummy-add-on to see how and where this
        * custom element is being defined.

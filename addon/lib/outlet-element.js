@@ -2,6 +2,7 @@ import { getOwner } from '@ember/application';
 import { scheduleOnce } from '@ember/runloop';
 import { getOptions } from './custom-element';
 import ROUTE_CONNECTIONS from './route-connections';
+import { getMeta } from '../index';
 
 export const OUTLET_VIEWS = new WeakMap();
 
@@ -38,7 +39,7 @@ export default class EmberWebOutlet extends HTMLElement {
   }
 
   scheduleUpdateOutletState(transition) {
-    if (transition.to.name !== getRoute(this) && getPreserveOutletContent(this)) return;
+    if (transition.to.name !== getRouteName(this) && getPreserveOutletContent(this)) return;
     scheduleOnce('render', this, 'updateOutletState')
   }
 
@@ -49,15 +50,13 @@ export default class EmberWebOutlet extends HTMLElement {
     if (!this.isConnected) return;
     const router = getOwner(this).lookup('router:main');
     if (!router._toplevelView) return;
-    let routeName;
-    const loadingName = `${getRoute(this)}_loading`;
-    const errorName = `${getRoute(this)}_error`;
+    let routeName = getRouteName(this);
+    const loadingName = `${routeName}_loading`;
+    const errorName = `${routeName}_error`;
     if (router.isActive(loadingName)) {
       routeName = loadingName;
     } else if (router.isActive(errorName)) {
       routeName = errorName;
-    } else {
-      routeName = getRoute(this);
     }
     const stateObj = (() => {
       if (typeof router._toplevelView.ref.compute === 'function') {
@@ -123,18 +122,15 @@ function lookupOutlet(outletState, routeName, outletName) {
  * @param {HTMLElement|EmberCustomElement} element
  * @returns {String|null}
  */
-function getRoute(element) {
-  if (element.parsedName) {
-    const { type, fullNameWithoutType } = element.parsedName;
-    if (type === 'route') {
-      return fullNameWithoutType.replace('/', '.');
-    } else if (type === 'application') {
-      return 'application';
-    } else {
-      return null;
-    }
+function getRouteName(element) {
+  const { parsedName } = getMeta(element);
+  const { type, fullNameWithoutType } = parsedName;
+  if (type === 'route') {
+    return fullNameWithoutType.replace('/', '.');
+  } else if (type === 'application') {
+    return 'application';
   }
-  const attr = element.getAttribute('route');
+  const attr = element.getAttribute ? element.getAttribute('route') : null;
   const routeName = attr ? attr.trim() : null;
   return routeName && routeName.length ? routeName : 'application';
 }

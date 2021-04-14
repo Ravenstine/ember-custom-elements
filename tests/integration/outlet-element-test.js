@@ -5,11 +5,11 @@ import { find,
          settled
 } from '@ember/test-helpers';
 import hbs from 'htmlbars-inline-precompile';
-import { setOwner } from '@ember/application';
-import { EmberOutletElement } from 'ember-custom-elements';
+import { customElement, EmberOutletElement } from 'ember-custom-elements';
 import Route from '@ember/routing/route';
-import { setupRouteTest, setupTestRouter } from '../helpers/ember-custom-elements';
+import { setupRouteTest, setupTestRouter, setupNativeElementForTest } from '../helpers/ember-custom-elements';
 
+@customElement('outlet-element')
 class OutletElement extends EmberOutletElement {}
 
 module('Integration | Element | outlet-element', function(hooks) {
@@ -17,15 +17,7 @@ module('Integration | Element | outlet-element', function(hooks) {
   setupRouteTest(hooks);
 
   hooks.beforeEach(function() {
-    const owner = this.owner;
-    OutletElement.prototype.initialize = function() {
-      setOwner(this, owner);
-    }
-    try {
-      window.customElements.define('outlet-element', OutletElement);
-    } catch (error) {
-      // noop
-    }
+    setupNativeElementForTest(this.owner, OutletElement, 'outlet-element');
   });
 
   test('it renders', async function(assert) {
