@@ -13,7 +13,7 @@ module('Unit | Utility | template-compiler', function(hooks) {
       tagName: '',
       layout: hbs`
         <h2>Hello World</h2>
-        {{#if hasBlock}}
+        {{#if has-block}}
           <h3>{{yield}}</h3>
         {{/if}}
         <ul>
