@@ -2,7 +2,6 @@
 import Ember from 'ember';
 import Router from '@ember/routing/router';
 import { setupCustomElementFor } from 'ember-custom-elements';
-import { guidFor } from '@ember/object/internals';
 
 export function setupComponentForTest(owner, componentClass, template, registrationName) {
   owner.register(`component:${registrationName}`, componentClass);

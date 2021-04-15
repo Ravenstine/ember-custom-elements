@@ -1,7 +1,6 @@
 import Application from '@ember/application';
 import Route from '@ember/routing/route';
 import EmberComponent from '@ember/component';
-import { guidFor } from '@ember/object/internals';
 import { isGlimmerComponent } from './glimmer-compat';
 import { TARGET_AVAILABLE } from './custom-element';
 
