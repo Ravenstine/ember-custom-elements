@@ -40,11 +40,6 @@ export function setupRouteForTest(owner, routeClass, registrationName) {
   setupCustomElementFor(owner, fullName);
 }
 
-function internalTagNameFor(targetClass) {
-  const guid = guidFor(targetClass);
-  return `internal-element-${guid}`;
-}
-
 export function setupNativeElementForTest(owner, elementClass, tagName) {
   const fullName = `custom-element:${tagName}`;
   try {

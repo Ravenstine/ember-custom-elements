@@ -105,17 +105,6 @@ export function isNativeElement(targetClass) {
   return isAncestorOf(targetClass, HTMLElement);
 }
 
-/**
- * 
- * @param {Class} targetClass
- * @private
- * @returns {String}
- */
-export function internalTagNameFor(targetClass) {
-  const guid = guidFor(targetClass);
-  return `internal-element-${guid}`;
-}
-
 function isAncestorOf(a, b) {
   if (!a) return false;
 
