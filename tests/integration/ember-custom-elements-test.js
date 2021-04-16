@@ -76,7 +76,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
         setupComponentForTest(this.owner, EmberCustomElement, template, 'web-component');
 
         set(this, 'foo', 'bar');
-        await render(hbs`<web-component foo={{foo}}></web-component>`);
+        await render(hbs`<web-component foo={{this.foo}}></web-component>`);
         const element = find('web-component');
 
         assert.equal(element.textContent.trim(), 'bar');
@@ -97,7 +97,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
         setupComponentForTest(this.owner, EmberCustomElement, template, 'web-component');
 
         set(this, 'foo', 'bar');
-        await render(hbs`<web-component foo-bar={{foo}}></web-component>`);
+        await render(hbs`<web-component foo-bar={{this.foo}}></web-component>`);
         const element = find('web-component');
 
         assert.equal(element.textContent.trim(), 'bar');
