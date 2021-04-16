@@ -1,5 +1,5 @@
 /* eslint-disable ember/new-module-imports */
-import Ember from 'ember';
+import Ember from 'ember-custom-elements/lib/ember-compat';
 import Router from '@ember/routing/router';
 import { setupCustomElementFor } from 'ember-custom-elements';
 

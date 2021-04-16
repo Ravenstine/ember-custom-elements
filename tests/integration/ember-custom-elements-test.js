@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import Ember from 'ember';
+import Ember, { registerDestructor } from 'ember-custom-elements/lib/ember-compat';
 import { module, skip, test, } from 'qunit';
 import { setupTest, setupRenderingTest } from 'ember-qunit';
 import { set } from '@ember/object';
@@ -27,7 +27,6 @@ import { customElement, forwarded, getCustomElement } from 'ember-custom-element
 import { tracked } from '@glimmer/tracking';
 import Service, { inject as service } from '@ember/service';
 import { getOwner } from '@ember/application';
-import { registerDestructor } from 'ember-custom-elements/lib/ember-compat';
 
 module('Integration | Component | ember-custom-elements', function (hooks) {
   setupRenderingTest(hooks);

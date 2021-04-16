@@ -1,12 +1,20 @@
-import Ember from 'ember';
+/* eslint-disable ember/new-module-imports */
+/* global require */
+import { get } from '@ember/object';
 
-let destroyable;
+const Ember = require('ember').default;
 
-try {
-  destroyable = Ember.__loader.require('@ember/destroyable');
-} catch {
-  // no-op
+export default Ember;
+
+function emberRequire() {
+  try {
+    return Ember.__loader.require(...arguments);
+  } catch (_) {
+    // no-op
+  }
 }
+
+const destroyable = emberRequire('@ember/destroyable');
 
 /**
  * Someday, Ember may no longer implement objects in a way
@@ -31,6 +39,9 @@ export function registerDestructor(object, callback) {
   if (destroyable) {
     return destroyable.registerDestructor(object, callback);
   } else {
+    // Obviously this is nowhere near a 1-to-1
+    // replica of registerDestructor, but it 
+    // satisfies the current needs of this add-on.
     const ogDestroy = object.destroy;
     if (typeof ogDestroy === 'function') {
       Object.defineProperty(object, 'destroy', {
@@ -42,3 +53,14 @@ export function registerDestructor(object, callback) {
     }
   }
 }
+
+export const setComponentTemplate = 
+  emberRequire('@ember/runloop').setComponentTemplate || 
+  Ember._setComponentTemplate;
+
+const runloop = emberRequire('@ember/runloop');
+
+export const backburner = 
+  runloop._backburner ||
+  runloop.backburner ||
+  get(Ember, 'run.backburner');

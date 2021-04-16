@@ -1,4 +1,4 @@
-import Ember from 'ember';
+import Ember from './ember-compat';
 
 /**
  * This file is a bit of a hack.  What it does is expose access to a

@@ -1,5 +1,5 @@
-import Ember from 'ember';
 import { scheduleOnce } from '@ember/runloop';
+import { backburner } from './ember-compat';
 
 /**
  * Tracks changes to block content after it's been captured
@@ -27,8 +27,7 @@ export default class BlockContent {
     this.fragment.append(this.startBoundary);
     this.fragment.append(this.endBoundary);
     const cache = [];
-    // eslint-disable-next-line ember/new-module-imports
-    Ember.run.backburner.on('begin', () => {
+    backburner.on('begin', () => {
       // eslint-disable-next-line ember/no-incorrect-calls-with-inline-anonymous-functions
       scheduleOnce('actions', this, () => {
         if (this.startBoundary.isConnected) {

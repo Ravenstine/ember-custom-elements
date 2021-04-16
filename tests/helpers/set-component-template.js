@@ -1,9 +1,8 @@
-/* eslint-disable ember/new-module-imports */
-import Ember from 'ember';
+import { setComponentTemplate as _setComponentTemplate } from 'ember-custom-elements/lib/ember-compat';
 
 export async function setComponentTemplate(template, component, owner, registrationName) {
-  if (Ember._setComponentTemplate) {
-    return Ember._setComponentTemplate(component, template);
+  if (_setComponentTemplate) {
+    return _setComponentTemplate(component, template);
   }
   component.prototype.layout = template;
   try {
