@@ -7,6 +7,7 @@ Ember Web Components Changelog
 - Add support for using the `@customElement` decorator on descendent of HTMLElement
 - Make non-standard custom element properties private
 - Fix serious bug with non-owned apps failing to render
+- Drop Ember 3.6 support.
 
 ## v2.0.4
 
