@@ -189,6 +189,8 @@ export default class PostsRoute extends Route {
 
 In this example, the `<test-route-sidebar>` element exhibits the same behavior as `{{outlet "sidebar"}}` would inside the parent route of the `posts` route.  Notice that the `outletName` option reflects the name of the outlet specified in the call to the `render()` method.
 
+Note that the use of `renderTemplate` is being deprecated in newer versions of Ember.
+
 
 
 
@@ -291,7 +293,7 @@ There's a few minor things that this add-on does for you when it comes to using 
 
 - If you need to access the application from a descendent class of `HTMLElement`, you can use `Ember.getOwner` anywhere in your custom element code.
 - The `connectedCallback` will only be called after Glimmer has had a chance to render the block of content passed to your custom element.  This has to happen because Glimmer inserts elements individually, so even though your custom element may have been connected to the DOM, its prospective children probably haven't been inserted yet.
-- Service injection is possible like with any other Ember class using the `@inject` decorator from `@ember/service`.
+- Service injection is possible like with any other Ember class using the `@inject` decorator from `@ember/service`. (In pre-Octane Ember, you of course need a [polyfill](https://github.com/ember-polyfills/ember-decorators-polyfill) for ES decorators)
 
 It's important that your custom elements are located in a folder named `app/custom-elements` so that they can be properly registered with your application.  This add-on will NOT infer the tagName of the elements from their respective file names; you must always use the `@customElement` decorator.
 
