@@ -1,3 +1,5 @@
+/* eslint-disable ember/no-private-routing-service */
+/* eslint-disable ember/no-test-this-render */
 import { module, test, } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { find,
@@ -27,7 +29,7 @@ module('Integration | Element | outlet-element', function(hooks) {
     setupTestRouter(this.owner, function() {});
     this.owner.lookup('router:main').transitionTo('/');
     await render(hbs`<outlet-element></outlet-element>`);
-    await settled();
+    
     const element = find('outlet-element');
     assert.equal(element.textContent.trim(), 'Hello World');
   });
@@ -40,7 +42,7 @@ module('Integration | Element | outlet-element', function(hooks) {
     setupTestRouter(this.owner, function() {});
     this.owner.lookup('router:main').transitionTo('foo-bar');
     await render(hbs`<outlet-element route="foo-bar"></outlet-element>`);
-    await settled();
+    
     const element = find('outlet-element');
     assert.equal(element.textContent.trim(), 'Hello World');
   });

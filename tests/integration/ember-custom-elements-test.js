@@ -1,7 +1,9 @@
+/* eslint-disable ember/require-tagless-components */
+/* eslint-disable ember/no-classic-components */
 /* eslint-disable no-unused-vars */
 import Ember, { registerDestructor } from 'ember-custom-elements/lib/ember-compat';
-import { module, skip, test, } from 'qunit';
-import { setupTest, setupRenderingTest } from 'ember-qunit';
+import { module, test, } from 'qunit';
+import { setupRenderingTest } from 'ember-qunit';
 import { set } from '@ember/object';
 import { later, scheduleOnce } from '@ember/runloop';
 import { find,
@@ -47,7 +49,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
         setupComponentForTest(this.owner, EmberCustomElement, template, 'web-component');
 
         await render(hbs`<web-component></web-component>`);
-        await settled();
+        
         const element = find('web-component');
         assert.equal(element.textContent.trim(), 'foo bar');
       });
@@ -234,7 +236,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
         setupComponentForTest(this.owner, EmberCustomElement, hbs``, 'web-component');
 
         await render(hbs`<web-component></web-component>`);
-        await settled();
+        
       });
 
       test('it can access the custom element in another method', async function (assert) {
@@ -255,7 +257,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
         setupComponentForTest(this.owner, EmberCustomElement, hbs``, 'web-component');
 
         await render(hbs`<web-component></web-component>`);
-        await settled();
+        
       });
 
       test('it can interface with custom element properties', async function (assert) {
@@ -378,7 +380,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
             <web-component></web-component>
             <web-component></web-component>
           `);
-          await settled();
+          
           const elements = findAll('web-component');
           for (const element of elements) {
             assert.equal(element.textContent.trim(), 'Welcome to Ember'); 
@@ -452,7 +454,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
         this.route('test-route', { path: '/' });
       });
 
-      this.owner.lookup('router:main').transitionTo('/');
+      this.owner.lookup('service:router').transitionTo('/');
       await settled();
       const element = find('web-component');
       assert.equal(element.textContent.trim(), 'Hello World');
@@ -472,7 +474,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
         this.route('test-route', { path: '/' });
       });
 
-      this.owner.lookup('router:main').transitionTo('/');
+      this.owner.lookup('service:router').transitionTo('/');
       await settled();
       const element = find('web-component');
       assert.equal(element.shadowRoot.textContent.trim(), 'Hello World');
@@ -499,7 +501,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
         this.route('test-route', { path: '/' });
       });
 
-      this.owner.lookup('router:main').transitionTo('/');
+      this.owner.lookup('service:router').transitionTo('/');
       await waitUntil(() => find('web-component'));
       const element = find('web-component');
       await waitUntil(() => element.querySelector('[data-test-loading]'));
@@ -529,7 +531,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
         this.route('test-route', { path: '/' });
       });
 
-      this.owner.lookup('router:main').transitionTo('/');
+      this.owner.lookup('service:router').transitionTo('/');
       await waitUntil(() => find('web-component'));
       const element = find('web-component');
       await waitUntil(() => element.querySelector('[data-test-error]'));
@@ -560,7 +562,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
         });
       });
 
-      await this.owner.lookup('router:main').transitionTo('/foo/bar/baz');
+      await this.owner.lookup('service:router').transitionTo('/foo/bar/baz');
       await settled();
       const element = find('web-component');
       assert.equal(element.textContent.trim(), 'foo bar baz', 'renders sub routes');
@@ -589,11 +591,11 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
         });
       });
 
-      await this.owner.lookup('router:main').transitionTo('/bar');
+      await this.owner.lookup('service:router').transitionTo('/bar');
       await settled();
       const element = find('web-component');
       assert.equal(element.textContent.trim(), 'foo bar', 'renders first route');
-      await this.owner.lookup('router:main').transitionTo('/baz');
+      await this.owner.lookup('service:router').transitionTo('/baz');
       await settled();
       assert.equal(element.textContent.trim(), 'foo baz', 'transitions to second route');
     });
@@ -620,9 +622,9 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
         this.route('bar-route', { path: '/bar' });
       });
 
-      this.owner.lookup('router:main').transitionTo('/foo');
+      this.owner.lookup('service:router').transitionTo('/foo');
       await settled();
-      this.owner.lookup('router:main').transitionTo('/bar');
+      this.owner.lookup('service:router').transitionTo('/bar');
       await settled();
       const element = find('foo-route');
       assert.notOk(element.querySelector('[data-test-foo]'), 'it destroys DOM contents');
@@ -650,9 +652,9 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
         this.route('bar-route', { path: '/bar' });
       });
 
-      this.owner.lookup('router:main').transitionTo('/foo');
+      this.owner.lookup('service:router').transitionTo('/foo');
       await settled();
-      this.owner.lookup('router:main').transitionTo('/bar');
+      this.owner.lookup('service:router').transitionTo('/bar');
       await settled();
       const element = find('foo-route');
       assert.ok(element.querySelector('[data-test-foo]'), 'it preserves DOM contents');
@@ -669,7 +671,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
       }
       setupNativeElementForTest(this.owner, NativeCustomElement, 'native-component-1');
       await render(hbs`<native-component-1></native-component-1>`);
-      await settled();
+      
       const element = find('native-component-1');
       assert.equal(element.textContent.trim(), 'I am a native custom element');
     });
@@ -691,7 +693,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
       setupNativeElementForTest(this.owner, NativeCustomElement, 'native-component-2');
       set(this, 'show', true);
       await render(hbs`<native-component-2>{{#if this.show}}a little teapot {{/if}}</native-component-2>`);
-      await settled();
+      
       const element = find('native-component-2');
       assert.equal(element.textContent.trim(), 'I\'m a little teapot short and stout');
       set(this, 'show', false);
@@ -732,7 +734,7 @@ module('Integration | Component | ember-custom-elements', function (hooks) {
       }
       setupNativeElementForTest(this.owner, NativeCustomElement, 'native-component-4');
       await render(hbs`<native-component-4></native-component-4>`);
-      await settled();
+      
       const element = find('native-component-4');
       assert.equal(element.textContent.trim(), 'foo');
     });

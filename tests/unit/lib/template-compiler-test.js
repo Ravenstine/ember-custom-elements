@@ -1,3 +1,5 @@
+/* eslint-disable ember/no-classic-components */
+/* eslint-disable ember/no-classic-classes */
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { find, findAll, render } from '@ember/test-helpers';

@@ -88,6 +88,10 @@ export default customElement(MyComponent, 'my-component');
 
 However, it's recommended that you upgrade to a recent version of [ember-cli-babel](https://github.com/babel/ember-cli-babel) so you can use decorator syntax out of the box, or manually install [babel-plugin-proposal-decorators](https://babeljs.io/docs/en/babel-plugin-proposal-decorators).
 
+In newer versions of Ember, you will get a linting error if you have an empty backing class for your component.  Since the `@customElement` decorator needs to be used in a JS file in order to implement a custom element for your component, you may have no choice but to have an empty backing class.
+
+Thus, you may want to disable the `ember/no-empty-glimmer-component-classes` ESLint rule in your Ember project.  In the future, we will explore ways to define custom elements for tagless components, but until then you either need a component class defined.
+
 
 
 

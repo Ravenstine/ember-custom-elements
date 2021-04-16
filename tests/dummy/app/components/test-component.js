@@ -1,3 +1,5 @@
+/* eslint-disable ember/no-classic-components */
+/* eslint-disable ember/require-tagless-components */
 import Component from '@ember/component';
 import { customElement } from 'ember-custom-elements';
 

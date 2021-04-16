@@ -1,3 +1,4 @@
+/* eslint-disable ember/no-get */
 /* eslint-disable ember/new-module-imports */
 
 import { get } from '@ember/object';

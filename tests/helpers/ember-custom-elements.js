@@ -1,3 +1,4 @@
+/* eslint-disable ember/no-private-routing-service */
 /* eslint-disable ember/new-module-imports */
 import Ember from 'ember-custom-elements/lib/ember-compat';
 import Router from '@ember/routing/router';

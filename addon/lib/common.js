@@ -1,3 +1,4 @@
+/* eslint-disable ember/no-classic-components */
 import Application from '@ember/application';
 import Route from '@ember/routing/route';
 import EmberComponent from '@ember/component';

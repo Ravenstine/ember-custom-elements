@@ -1,3 +1,5 @@
+/* eslint-disable ember/no-classic-classes */
+/* eslint-disable ember/no-classic-components */
 import Component from '@ember/component';
 import { getCustomElements } from '../lib/common';
 import { warn } from '@ember/debug';

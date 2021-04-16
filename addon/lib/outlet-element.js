@@ -1,3 +1,4 @@
+/* eslint-disable ember/no-private-routing-service */
 import { getOwner } from '@ember/application';
 import { scheduleOnce } from '@ember/runloop';
 import { getOptions } from './custom-element';
