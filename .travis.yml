@@ -52,6 +52,7 @@ jobs:
     - env: EMBER_TRY_SCENARIO=ember-lts-3.12
     - env: EMBER_TRY_SCENARIO=ember-lts-3.16
     - env: EMBER_TRY_SCENARIO=ember-lts-3.20
+    - env: EMBER_TRY_SCENARIO=ember-lts-3.24
     - env: EMBER_TRY_SCENARIO=ember-release
     - env: EMBER_TRY_SCENARIO=ember-beta
     - env: EMBER_TRY_SCENARIO=ember-canary
@@ -59,9 +60,6 @@ jobs:
 
 script:
   - node_modules/.bin/ember try:one $EMBER_TRY_SCENARIO
-
-before_install:
-  - rm -rf /home/travis/build/Ravenstine/ember-custom-elements/node_modules/dummy-add-on
 
 install:
   - npm ci
