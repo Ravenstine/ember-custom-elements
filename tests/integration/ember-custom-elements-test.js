@@ -18,7 +18,7 @@ import {
   setupNativeElementForTest,
   setupTestRouter
 } from '../helpers/ember-custom-elements';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import EmberComponent from '@ember/component';
 import GlimmerComponent from '@glimmer/component';
 import DummyApplication from 'dummy/app';

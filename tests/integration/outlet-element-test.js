@@ -4,7 +4,7 @@ import { find,
          render,
          settled
 } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { customElement, EmberOutletElement } from 'ember-custom-elements';
 import Route from '@ember/routing/route';
 import { setupRouteTest, setupTestRouter, setupNativeElementForTest } from '../helpers/ember-custom-elements';

@@ -1,19 +1,19 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { find, findAll, render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import Component from '@ember/component';
 import { compileTemplate } from 'ember-custom-elements/lib/template-compiler';
 
-module('Unit | Utility | template-compiler', function(hooks) {
+module('Unit | Utility | template-compiler', function (hooks) {
   setupRenderingTest(hooks);
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     this.owner.register('component:dummy-component', Component.extend({
       tagName: '',
       layout: hbs`
         <h2>Hello World</h2>
-        {{#if has-block}}
+        {{#if (has-block)}}
           <h3>{{yield}}</h3>
         {{/if}}
         <ul>
@@ -25,7 +25,7 @@ module('Unit | Utility | template-compiler', function(hooks) {
     }));
   })
 
-  test('it renders', async function(assert) {
+  test('it renders', async function (assert) {
     const template = compileTemplate('dummy-component', ['items']);
     this.blockContent = 'foo';
     // eslint-disable-next-line ember/no-attrs-in-components
