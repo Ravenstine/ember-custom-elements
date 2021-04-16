@@ -40,11 +40,11 @@ The most flexible way to render parts of your Ember application using custom ele
 
 ## Compatibility
 
-* Ember.js v3.6 or above
+* Ember.js v3.8 or above
 * Ember CLI v2.13 or above
 * Node.js v10 or above
 
-This add-on almost certainly won't work with versions of `ember-source` prior to `3.6.0`.  I will not be trying to get this to work with earlier versions, but I'm open to any pull requests that improve backward compatibility.
+This add-on won't work at all with versions of `ember-source` prior to `3.6.0`.  I will not be actively trying to support versions of Ember that are not recent LTS versions, but I'm open to any pull requests that improve backward compatibility.
 
 
 ## Installation
