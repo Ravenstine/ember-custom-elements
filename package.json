@@ -39,7 +39,7 @@
     "@glimmer/tracking": "^1.0.0",
     "babel-eslint": "^10.1.0",
     "broccoli-asset-rev": "^3.0.0",
-    "dummy-add-on": "file:tests/dummy-add-on",
+    "broccoli-funnel": "^2.0.2",
     "ember-auto-import": "^1.5.3",
     "ember-cli": "~3.18.0",
     "ember-cli-dependency-checker": "^3.2.0",
@@ -71,7 +71,9 @@
   },
   "ember-addon": {
     "configPath": "tests/dummy/config",
-    "paths": []
+    "paths": [
+      "tests/dummy-add-on"
+    ]
   },
   "peerDependencies": {
     "ember-source": ">=3.6.0"
