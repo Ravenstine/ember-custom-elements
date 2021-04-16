@@ -1,8 +1,18 @@
 /* eslint-disable ember/new-module-imports */
-/* global require */
+
 import { get } from '@ember/object';
 
-const Ember = require('ember').default;
+const ogRequire = window.require;
+
+function _require() {
+  try {
+    return ogRequire(...arguments);
+  } catch (_) {
+    // no-op
+  }
+}
+
+const Ember = (_require('ember') || {}).default || (new Function('window', 'return window.Ember;'))(window);
 
 export default Ember;
 
